@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, AlertCircle } from 'lucide-react';
+import { Info, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 
 /** Tipe notifikasi yang didukung */
 const TYPE_CONFIG = {
@@ -11,11 +11,25 @@ const TYPE_CONFIG = {
         dotColor: 'bg-blue-500',
     },
     warning: {
-        Icon: AlertCircle,
+        Icon: AlertTriangle,
         iconClass: 'text-amber-500',
         bg: 'bg-amber-50',
         border: 'border-amber-100',
         dotColor: 'bg-amber-500',
+    },
+    reminder: {
+        Icon: Clock,
+        iconClass: 'text-slate-500',
+        bg: 'bg-slate-50',
+        border: 'border-slate-100',
+        dotColor: 'bg-slate-500',
+    },
+    success: {
+        Icon: CheckCircle,
+        iconClass: 'text-indigo-500',
+        bg: 'bg-indigo-50',
+        border: 'border-indigo-100',
+        dotColor: 'bg-indigo-500',
     },
 };
 

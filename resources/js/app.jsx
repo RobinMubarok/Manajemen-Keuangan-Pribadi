@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import MainLayout from './layouts/MainLayout';
 import DashboardPage from './pages/DashboardPage';
+import NotifikasiPage from './pages/NotifikasiPage';
 
 // Initial dummy notifications
 const INITIAL_NOTIFICATIONS = [
-    { id: 1, message: 'Belum mencatat transaksi hari ini', time: '5 jam lalu',  type: 'info',    read: false },
-    { id: 2, message: 'Budget harian hampir habis',        time: '1 jam lalu',  type: 'warning', read: false },
+    { id: 1, message: 'Budget Makanan hampir habis (85% terpakai)', time: 'Sekitar 23 jam yang lalu', type: 'warning', read: false },
+    { id: 2, message: 'Jangan lupa catat pengeluaran hari ini', time: '1 hari yang lalu', type: 'reminder', read: false },
+    { id: 3, message: 'Transaksi berhasil disimpan: Langganan streaming', time: '1 hari yang lalu', type: 'success', read: true },
+    { id: 4, message: 'Budget Transportasi hampir habis (80% terpakai)', time: '3 hari yang lalu', type: 'warning', read: true },
 ];
 
 /**
@@ -46,8 +49,13 @@ export default function App() {
             //     return <KategoriPage />;
             // case 'laporan':
             //     return <LaporanPage />;
-            // case 'notifikasi':
-            //     return <NotifikasiPage />;
+            case 'notifikasi':
+                return (
+                    <NotifikasiPage 
+                        notifications={notifications} 
+                        onMarkRead={handleMarkRead} 
+                    />
+                );
             default:
                 return (
                     <DashboardPage 

@@ -35,7 +35,7 @@ const MANAGE_ITEMS = [
  * @param {boolean}  isOpen       - Apakah sidebar terbuka (mobile)
  * @param {Function} onClose      - Callback tutup sidebar (mobile)
  */
-export default function Sidebar({ currentPage, onNavigate, isOpen, onClose }) {
+export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unreadCount = 0 }) {
     return (
         <aside
             className={[
@@ -87,14 +87,19 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose }) {
                     <p className="px-3 pb-2 text-[10px] font-semibold tracking-widest text-slate-500 uppercase">
                         Manage
                     </p>
-                    {MANAGE_ITEMS.map((item) => (
-                        <NavItem
-                            key={item.id}
-                            item={item}
-                            isActive={currentPage === item.id}
-                            onClick={() => onNavigate(item.id)}
-                        />
-                    ))}
+                    {MANAGE_ITEMS.map((item) => {
+                        const dynamicItem = item.id === 'notifikasi'
+                            ? { ...item, badge: unreadCount }
+                            : item;
+                        return (
+                            <NavItem
+                                key={dynamicItem.id}
+                                item={dynamicItem}
+                                isActive={currentPage === dynamicItem.id}
+                                onClick={() => onNavigate(dynamicItem.id)}
+                            />
+                        );
+                    })}
                 </div>
             </nav>
 

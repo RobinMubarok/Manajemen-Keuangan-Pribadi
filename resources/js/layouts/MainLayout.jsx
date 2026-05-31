@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Menu, Bell, Info, AlertCircle, Check } from 'lucide-react';
+import { Menu, Bell, Info, AlertCircle, Check, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 
 const PAGE_TITLES = {
     dashboard: 'Dashboard Keuangan',
     transaksi: 'Riwayat Transaksi',
     kategori: 'Kategori Anggaran',
     laporan: 'Analisis & Laporan',
-    notifikasi: 'Pemberitahuan Sistem',
+    notifikasi: 'Notifikasi',
 };
 
 const TYPE_CONFIG = {
@@ -16,8 +16,16 @@ const TYPE_CONFIG = {
         iconClass: 'text-indigo-500 bg-indigo-50 border-indigo-100',
     },
     warning: {
-        Icon: AlertCircle,
+        Icon: AlertTriangle,
         iconClass: 'text-amber-500 bg-amber-50 border-amber-100',
+    },
+    reminder: {
+        Icon: Clock,
+        iconClass: 'text-slate-500 bg-slate-50 border-slate-100',
+    },
+    success: {
+        Icon: CheckCircle,
+        iconClass: 'text-indigo-500 bg-indigo-50 border-indigo-100',
     },
 };
 
@@ -92,6 +100,7 @@ export default function MainLayout({
                 }}
                 isOpen={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
+                unreadCount={unreadCount}
             />
 
             {/* ── Area konten utama ── */}
@@ -159,6 +168,12 @@ export default function MainLayout({
                                             notifications.map((notif) => {
                                                 const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.info;
                                                 const IconComp = config.Icon;
+                                                let iconClass = config.iconClass;
+                                                if (notif.type === 'success') {
+                                                    iconClass = notif.read 
+                                                        ? 'text-slate-500 bg-slate-50 border-slate-100'
+                                                        : 'text-indigo-600 bg-indigo-50 border-indigo-100';
+                                                }
                                                 return (
                                                     <div 
                                                         key={notif.id} 
@@ -171,7 +186,7 @@ export default function MainLayout({
                                                             !notif.read ? 'bg-indigo-50/[0.08]' : ''
                                                         ].join(' ')}
                                                     >
-                                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg border flex items-center justify-center ${config.iconClass}`}>
+                                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg border flex items-center justify-center ${iconClass}`}>
                                                             <IconComp size={14} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">

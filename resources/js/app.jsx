@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import MainLayout from './layouts/MainLayout';
 import DashboardPage from './pages/DashboardPage';
 import NotifikasiPage from './pages/NotifikasiPage';
+import TransaksiPage from './pages/TransaksiPage';
+import TambahTransaksiPage from './pages/TambahTransaksiPage';
 
 // Initial dummy notifications
 const INITIAL_NOTIFICATIONS = [
@@ -43,8 +45,10 @@ export default function App() {
                     />
                 );
             // Tim dapat menambahkan halaman baru di sini:
-            // case 'transaksi':
-            //     return <TransaksiPage />;
+            case 'transaksi':
+                return <TransaksiPage onNavigate={setCurrentPage} />;
+            case 'tambah-transaksi':
+                return <TambahTransaksiPage onNavigate={setCurrentPage} />;
             // case 'kategori':
             //     return <KategoriPage />;
             // case 'laporan':

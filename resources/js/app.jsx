@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import NotifikasiPage from './pages/NotifikasiPage';
 import TransaksiPage from './pages/TransaksiPage';
 import TambahTransaksiPage from './pages/TambahTransaksiPage';
+import LaporanPage from './pages/LaporanPage';
 
 // Initial dummy notifications
 const INITIAL_NOTIFICATIONS = [
@@ -51,8 +52,8 @@ export default function App() {
                 return <TambahTransaksiPage onNavigate={setCurrentPage} />;
             // case 'kategori':
             //     return <KategoriPage />;
-            // case 'laporan':
-            //     return <LaporanPage />;
+            case 'laporan':
+                return <LaporanPage />;
             case 'notifikasi':
                 return (
                     <NotifikasiPage 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import MainLayout from './layouts/MainLayout';
 import DashboardPage from './pages/DashboardPage';
@@ -42,18 +42,40 @@ const INITIAL_TRANSACTIONS = [
  */
 export default function App() {
     const [currentPage, setCurrentPage] = useState('dashboard');
-    const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
-    const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+    const [notifications, setNotifications] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+
+    // Fetch initial data from backend API
+    useEffect(() => {
+        // Fetch notifications
+        fetch('/api/notifications')
+            .then((res) => res.json())
+            .then((data) => setNotifications(data))
+            .catch((err) => console.error('Error fetching notifications:', err));
+        // Fetch transactions
+        fetch('/api/transactions')
+            .then((res) => res.json())
+            .then((data) => setTransactions(data))
+            .catch((err) => console.error('Error fetching transactions:', err));
+    }, []);
 
     // State untuk menyimpan transaksi yang sedang di-edit (dioper ke halaman edit)
     const [editingTransaction, setEditingTransaction] = useState(null);
 
     const handleMarkAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        fetch('/api/notifications/mark-all-read', {
+            method: 'POST',
+        })
+            .then(() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true }))))
+            .catch((err) => console.error('Error marking all notifications read:', err));
     };
 
     const handleMarkRead = (id) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+        fetch(`/api/notifications/${id}/mark-read`, {
+            method: 'POST',
+        })
+            .then(() => setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n))))
+            .catch((err) => console.error('Error marking notification read:', err));
     };
 
     /* ─────────────── TRANSACTION CRUD HANDLERS ─────────────── */
@@ -65,10 +87,14 @@ export default function App() {
      * @param {Object} transaction - Data transaksi tanpa id
      */
     const handleAddTransaction = (transaction) => {
-        const newId = transactions.length > 0 
-            ? Math.max(...transactions.map(t => t.id)) + 1 
-            : 1;
-        setTransactions(prev => [{ ...transaction, id: newId }, ...prev]);
+        fetch('/api/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(transaction),
+        })
+            .then((res) => res.json())
+            .then((newTx) => setTransactions((prev) => [newTx, ...prev]))
+            .catch((err) => console.error('Error adding transaction:', err));
     };
 
     /**
@@ -78,9 +104,13 @@ export default function App() {
      * @param {Object} updatedTransaction - Data transaksi lengkap dengan id
      */
     const handleEditTransaction = (updatedTransaction) => {
-        setTransactions(prev =>
-            prev.map(tx => tx.id === updatedTransaction.id ? updatedTransaction : tx)
-        );
+        fetch(`/api/transactions/${updatedTransaction.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedTransaction),
+        })
+            .then(() => setTransactions((prev) => prev.map((tx) => (tx.id === updatedTransaction.id ? updatedTransaction : tx))))
+            .catch((err) => console.error('Error editing transaction:', err));
     };
 
     /**
@@ -90,7 +120,11 @@ export default function App() {
      * @param {number} id - ID transaksi yang akan dihapus
      */
     const handleDeleteTransaction = (id) => {
-        setTransactions(prev => prev.filter(tx => tx.id !== id));
+        fetch(`/api/transactions/${id}`, {
+            method: 'DELETE',
+        })
+            .then(() => setTransactions((prev) => prev.filter((tx) => tx.id !== id)))
+            .catch((err) => console.error('Error deleting transaction:', err));
     };
 
     /**

@@ -1,25 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronDown, Download } from 'lucide-react';
-
-// Dataset transaksi awal (mencakup data dari TransaksiPage dan data tambahan untuk simulasi filter)
-const INITIAL_TRANSACTIONS = [
-    { id: 1, date: '19/05/2026', category: 'Hiburan', description: 'Langganan Streaming', amount: -350000, type: 'Pengeluaran' },
-    { id: 2, date: '18/05/2026', category: 'Beasiswa', description: 'Beasiswa Indonesia Jaya', amount: 5800000, type: 'Pemasukan' },
-    { id: 3, date: '17/05/2026', category: 'Makanan', description: 'Kopi & Snack', amount: -50000, type: 'Pengeluaran' },
-    { id: 4, date: '17/05/2026', category: 'Belanja', description: 'Beli Baju', amount: -750000, type: 'Pengeluaran' },
-    { id: 5, date: '16/05/2026', category: 'Transportasi', description: 'Grab ke kampus', amount: -50000, type: 'Pengeluaran' },
-    { id: 6, date: '15/05/2026', category: 'Makanan', description: 'DO Gacoan', amount: -50000, type: 'Pengeluaran' },
-    { id: 7, date: '14/05/2026', category: 'Kesehatan', description: 'Vitamin C', amount: -200000, type: 'Pengeluaran' },
-    
-    // Transaksi Bulan April 2026 (Simulasi)
-    { id: 8, date: '10/04/2026', category: 'Gaji', description: 'Gaji Bulanan Utama', amount: 12000000, type: 'Pemasukan' },
-    { id: 9, date: '12/04/2026', category: 'Makanan', description: 'Makan Malam Mewah', amount: -450000, type: 'Pengeluaran' },
-    { id: 10, date: '18/04/2026', category: 'Belanja', description: 'Beli Sepatu Baru', amount: -800000, type: 'Pengeluaran' },
-
-    // Transaksi Bulan Juni 2026 (Simulasi)
-    { id: 11, date: '02/06/2026', category: 'Hasil Usaha', description: 'Penjualan Toko Online', amount: 4500000, type: 'Pemasukan' },
-    { id: 12, date: '05/06/2026', category: 'Transportasi', description: 'Servis Motor Rutin', amount: -350000, type: 'Pengeluaran' }
-];
 
 const MONTHS = [
     { value: '01', name: 'Januari' },
@@ -41,9 +21,33 @@ const YEARS = ['2024', '2025', '2026', '2027'];
 export default function LaporanPage() {
     const [selectedMonth, setSelectedMonth] = useState('05'); // Default: Mei
     const [selectedYear, setSelectedYear] = useState('2026'); // Default: 2026
+    // State for transactions fetched from API
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Saring transaksi berdasarkan bulan dan tahun terpilih
-    const filteredTransactions = INITIAL_TRANSACTIONS.filter(tx => {
+    // Fetch transactions from backend API on component mount
+    useEffect(() => {
+        fetch('/api/transactions')
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                setTransactions(data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error('Failed to fetch transactions:', err);
+                setError(err.message);
+                setLoading(false);
+            });
+    }, []);
+
+    // Filter transactions based on selected month and year
+    const filteredTransactions = transactions.filter(tx => {
         const [day, month, year] = tx.date.split('/');
         return month === selectedMonth && year === selectedYear;
     });

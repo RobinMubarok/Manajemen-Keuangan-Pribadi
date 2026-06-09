@@ -44,6 +44,7 @@ export default function App() {
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [notifications, setNotifications] = useState([]);
     const [transactions, setTransactions] = useState([]);
+    const [categories, setCategories] = useState([]);
 
     // Fetch initial data from backend API
     useEffect(() => {
@@ -57,6 +58,11 @@ export default function App() {
             .then((res) => res.json())
             .then((data) => setTransactions(data))
             .catch((err) => console.error('Error fetching transactions:', err));
+        // Fetch categories
+        fetch('/api/categories')
+            .then((res) => res.json())
+            .then((data) => setCategories(data))
+            .catch((err) => console.error('Error fetching categories:', err));
     }, []);
 
     // State untuk menyimpan transaksi yang sedang di-edit (dioper ke halaman edit)
@@ -137,6 +143,40 @@ export default function App() {
         setCurrentPage('edit-transaksi');
     };
 
+    /* ─────────────── CATEGORY CRUD HANDLERS ─────────────── */
+
+    /**
+     * Tambah kategori baru via API.
+     *
+     * @param {{ name: string, type: string, icon: string, color: string }} category
+     */
+    const handleAddCategory = async (category) => {
+        const res = await fetch('/api/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(category),
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message || 'Failed to add category');
+        }
+
+        const newCat = await res.json();
+        setCategories((prev) => [...prev, newCat]);
+    };
+
+    /**
+     * Hapus kategori via API.
+     *
+     * @param {number} id - ID kategori
+     */
+    const handleDeleteCategory = (id) => {
+        fetch(`/api/categories/${id}`, { method: 'DELETE' })
+            .then(() => setCategories((prev) => prev.filter((c) => c.id !== id)))
+            .catch((err) => console.error('Error deleting category:', err));
+    };
+
     const renderPage = () => {
         switch (currentPage) {
             case 'dashboard':
@@ -154,6 +194,9 @@ export default function App() {
                         transactions={transactions}
                         onDelete={handleDeleteTransaction}
                         onNavigateToEdit={handleNavigateToEdit}
+                        categories={categories}
+                        onAddCategory={handleAddCategory}
+                        onDeleteCategory={handleDeleteCategory}
                     />
                 );
             case 'tambah-transaksi':
@@ -173,8 +216,6 @@ export default function App() {
                 );
             case 'atur-budget':
                 return <AturBudgetPage onNavigate={setCurrentPage} />;
-            // case 'kategori':
-            //     return <KategoriPage />;
             case 'laporan':
                 return <LaporanPage />;
             case 'notifikasi':

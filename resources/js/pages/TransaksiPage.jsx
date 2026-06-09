@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronUp, Edit2, Trash2, Settings, Plus, ArrowUpDown, X, AlertTriangle } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Edit2, Trash2, Settings, Plus, ArrowUpDown, X, AlertTriangle, FolderOpen } from 'lucide-react';
+import KelolaCategoryModal from '../components/KelolaCategoryModal';
 
 /**
  * TransaksiPage
@@ -17,7 +18,7 @@ import { Search, ChevronDown, ChevronUp, Edit2, Trash2, Settings, Plus, ArrowUpD
  * @param {Function} onDelete         - Callback hapus transaksi (id)
  * @param {Function} onNavigateToEdit - Callback navigasi ke edit (transaction object)
  */
-export default function TransaksiPage({ onNavigate, transactions = [], onDelete, onNavigateToEdit }) {
+export default function TransaksiPage({ onNavigate, transactions = [], onDelete, onNavigateToEdit, categories = [], onAddCategory, onDeleteCategory }) {
     // Filter & search state
     const [searchQuery, setSearchQuery] = useState('');
     const [filterTipe, setFilterTipe] = useState('Semua Tipe');
@@ -28,6 +29,9 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
 
     // Delete confirmation modal
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, transaction: null });
+
+    // Category modal state
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     /**
      * Parse tanggal format "d/m/yyyy" ke Date object untuk perbandingan sort.
@@ -176,6 +180,13 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                     <p className="text-slate-600 mt-1">Kelola semua transaksi keuangan anda</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button 
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm border border-slate-200"
+                    >
+                        <FolderOpen size={18} />
+                        Kelola Kategori
+                    </button>
                     <button 
                         onClick={() => onNavigate('atur-budget')}
                         className="flex items-center gap-2 bg-[#FFA93B] hover:bg-orange-500 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
@@ -391,6 +402,15 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                     </div>
                 </div>
             )}
+
+            {/* ── Kelola Kategori Modal ── */}
+            <KelolaCategoryModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => setIsCategoryModalOpen(false)}
+                categories={categories}
+                onAddCategory={onAddCategory}
+                onDeleteCategory={onDeleteCategory}
+            />
         </div>
     );
 }

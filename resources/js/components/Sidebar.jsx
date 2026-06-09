@@ -2,7 +2,6 @@ import React from 'react';
 import {
     LayoutDashboard,
     ArrowLeftRight,
-    FolderOpen,
     FileText,
     Bell,
     LogOut,
@@ -18,7 +17,6 @@ const NAV_ITEMS = [
 /** Daftar item navigasi "Manage" */
 const MANAGE_ITEMS = [
     { id: 'transaksi',  label: 'Transaksi',  icon: ArrowLeftRight },
-    { id: 'kategori',  label: 'Kategori',   icon: FolderOpen },
     { id: 'laporan',   label: 'Laporan',    icon: FileText },
     { id: 'notifikasi',label: 'Notifikasi', icon: Bell, badge: 2 },
 ];

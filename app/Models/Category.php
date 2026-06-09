@@ -20,6 +20,8 @@ class Category extends Model
         'user_id',
         'name',
         'type',
+        'icon',
+        'color',
     ];
 
     /**

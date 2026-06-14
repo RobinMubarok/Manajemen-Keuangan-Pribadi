@@ -166,12 +166,28 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                 <button
                     type="button"
                     onClick={() => onNavigate('transaksi')}
-                    className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-[#5E6AD2] hover:border-[#5E6AD2] transition-colors shadow-sm"
+                    className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+                    style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-default)',
+                        color: 'var(--text-muted)',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = 'var(--accent-border)';
+                        e.currentTarget.style.color = 'var(--accent)';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-default)';
+                        e.currentTarget.style.color = 'var(--text-muted)';
+                    }}
                     title="Kembali ke transaksi"
                 >
                     <ArrowLeft size={18} />
                 </button>
-                <h1 className="text-3xl font-bold text-slate-900 font-serif">
+                <h1
+                    className="text-3xl font-bold font-serif"
+                    style={{ color: 'var(--text-primary)' }}
+                >
                     {isEditMode ? 'Edit Transaksi' : 'Tambah Transaksi'}
                 </h1>
             </div>
@@ -179,27 +195,50 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Tipe Transaksi */}
                 <div className="space-y-3">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">Tipe Transaksi</label>
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Tipe Transaksi
+                    </label>
                     <div className="grid grid-cols-2 gap-6 max-w-lg">
                         <button
                             type="button"
                             onClick={() => handleTipeChange('Pemasukan')}
-                            className={`py-3.5 px-4 rounded-md font-bold font-serif text-center transition-colors ${
-                                tipe === 'Pemasukan' 
-                                ? 'bg-[#509C64] text-white shadow-sm' 
-                                : 'bg-[#DFDFDF] text-slate-700 hover:bg-slate-300'
-                            }`}
+                            className="py-3.5 px-4 rounded-md font-bold font-serif text-center transition-all"
+                            style={
+                                tipe === 'Pemasukan'
+                                    ? {
+                                          backgroundColor: 'var(--accent)',
+                                          color: 'var(--text-on-accent)',
+                                          border: 'none',
+                                      }
+                                    : {
+                                          backgroundColor: 'var(--bg-elevated)',
+                                          color: 'var(--text-muted)',
+                                          border: '1px solid var(--border-default)',
+                                      }
+                            }
                         >
                             Pemasukan
                         </button>
                         <button
                             type="button"
                             onClick={() => handleTipeChange('Pengeluaran')}
-                            className={`py-3.5 px-4 rounded-md font-bold font-serif text-center transition-colors ${
-                                tipe === 'Pengeluaran' 
-                                ? 'bg-[#EA543F] text-white shadow-sm' 
-                                : 'bg-[#DFDFDF] text-slate-700 hover:bg-slate-300'
-                            }`}
+                            className="py-3.5 px-4 rounded-md font-bold font-serif text-center transition-all"
+                            style={
+                                tipe === 'Pengeluaran'
+                                    ? {
+                                          backgroundColor: 'var(--negative)',
+                                          color: '#fff',
+                                          border: 'none',
+                                      }
+                                    : {
+                                          backgroundColor: 'var(--bg-elevated)',
+                                          color: 'var(--text-muted)',
+                                          border: '1px solid var(--border-default)',
+                                      }
+                            }
                         >
                             Pengeluaran
                         </button>
@@ -208,28 +247,56 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
 
                 {/* Jumlah */}
                 <div className="space-y-3 max-w-3xl">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">Jumlah</label>
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Jumlah
+                    </label>
                     <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 font-medium">Rp</span>
+                        <span
+                            className="absolute left-4 top-1/2 -translate-y-1/2 font-medium"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
+                            Rp
+                        </span>
                         <input 
                             type="text"
                             inputMode="numeric"
                             placeholder="0"
                             value={formatAmount(jumlah)}
                             onChange={(e) => handleAmountChange(e.target.value.replace(/\./g, ''))}
-                            className={`w-full pl-12 pr-4 py-4 rounded-md bg-[#DFDFDF] border-2 text-slate-800 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] font-medium transition-colors ${
-                                errors.jumlah ? 'border-red-400' : 'border-transparent'
-                            }`}
+                            className="w-full pl-12 pr-4 py-4 rounded-md font-medium transition-colors focus:outline-none"
+                            style={{
+                                backgroundColor: 'var(--bg-input)',
+                                border: errors.jumlah
+                                    ? '2px solid var(--negative)'
+                                    : '2px solid var(--border-default)',
+                                color: 'var(--text-primary)',
+                                borderRadius: 'var(--r-md)',
+                            }}
+                            onFocus={e => !errors.jumlah && (e.target.style.borderColor = 'var(--border-strong)')}
+                            onBlur={e => !errors.jumlah && (e.target.style.borderColor = 'var(--border-default)')}
                         />
                     </div>
                     {errors.jumlah && (
-                        <p className="text-sm text-red-500 font-medium">{errors.jumlah}</p>
+                        <p
+                            className="text-sm font-medium"
+                            style={{ color: 'var(--negative)' }}
+                        >
+                            {errors.jumlah}
+                        </p>
                     )}
                 </div>
 
                 {/* Kategori */}
                 <div className="space-y-3 max-w-3xl">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">Kategori</label>
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Kategori
+                    </label>
                     <div className="relative">
                         <select 
                             value={kategori}
@@ -237,24 +304,44 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                                 setKategori(e.target.value);
                                 setErrors((prev) => ({ ...prev, kategori: '' }));
                             }}
-                            className={`w-full appearance-none bg-[#DFDFDF] rounded-md px-4 py-4 pr-12 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] cursor-pointer border-2 transition-colors ${
-                                errors.kategori ? 'border-red-400' : 'border-transparent'
-                            }`}
+                            className="w-full appearance-none rounded-md px-4 py-4 pr-12 font-medium focus:outline-none cursor-pointer transition-colors"
+                            style={{
+                                backgroundColor: 'var(--bg-input)',
+                                border: errors.kategori
+                                    ? '2px solid var(--negative)'
+                                    : '2px solid var(--border-default)',
+                                color: 'var(--text-primary)',
+                                borderRadius: 'var(--r-md)',
+                            }}
                         >
                             {CATEGORIES[tipe].map((cat) => (
                                 <option key={cat} value={cat}>{cat}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-800 pointer-events-none" size={24} />
+                        <ChevronDown
+                            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                            size={24}
+                            style={{ color: 'var(--text-muted)' }}
+                        />
                     </div>
                     {errors.kategori && (
-                        <p className="text-sm text-red-500 font-medium">{errors.kategori}</p>
+                        <p
+                            className="text-sm font-medium"
+                            style={{ color: 'var(--negative)' }}
+                        >
+                            {errors.kategori}
+                        </p>
                     )}
                 </div>
 
                 {/* Tanggal */}
                 <div className="space-y-3 max-w-3xl">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">Tanggal</label>
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Tanggal
+                    </label>
                     <input 
                         type="date" 
                         value={tanggal}
@@ -262,18 +349,36 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                             setTanggal(e.target.value);
                             setErrors((prev) => ({ ...prev, tanggal: '' }));
                         }}
-                        className={`w-full px-4 py-4 rounded-md bg-[#DFDFDF] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] font-medium border-2 transition-colors ${
-                            errors.tanggal ? 'border-red-400' : 'border-transparent'
-                        }`}
+                        className="w-full px-4 py-4 rounded-md font-medium transition-colors focus:outline-none"
+                        style={{
+                            backgroundColor: 'var(--bg-input)',
+                            border: errors.tanggal
+                                ? '2px solid var(--negative)'
+                                : '2px solid var(--border-default)',
+                            color: 'var(--text-primary)',
+                            borderRadius: 'var(--r-md)',
+                        }}
+                        onFocus={e => !errors.tanggal && (e.target.style.borderColor = 'var(--border-strong)')}
+                        onBlur={e => !errors.tanggal && (e.target.style.borderColor = 'var(--border-default)')}
                     />
                     {errors.tanggal && (
-                        <p className="text-sm text-red-500 font-medium">{errors.tanggal}</p>
+                        <p
+                            className="text-sm font-medium"
+                            style={{ color: 'var(--negative)' }}
+                        >
+                            {errors.tanggal}
+                        </p>
                     )}
                 </div>
 
                 {/* Deskripsi */}
                 <div className="space-y-3 max-w-3xl">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">Deskripsi</label>
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Deskripsi
+                    </label>
                     <textarea 
                         rows={4}
                         placeholder="Catatan tambahan..."
@@ -284,12 +389,26 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                                 setErrors((prev) => ({ ...prev, deskripsi: '' }));
                             }
                         }}
-                        className={`w-full px-4 py-4 rounded-md bg-[#DFDFDF] text-slate-800 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] font-medium resize-none border-2 transition-colors ${
-                            errors.deskripsi ? 'border-red-400' : 'border-transparent'
-                        }`}
-                    ></textarea>
+                        className="w-full px-4 py-4 rounded-md font-medium resize-none transition-colors focus:outline-none"
+                        style={{
+                            backgroundColor: 'var(--bg-input)',
+                            border: errors.deskripsi
+                                ? '2px solid var(--negative)'
+                                : '2px solid var(--border-default)',
+                            color: 'var(--text-primary)',
+                            borderRadius: 'var(--r-md)',
+                        }}
+                        placeholder-style={{ color: 'var(--text-muted)' }}
+                        onFocus={e => !errors.deskripsi && (e.target.style.borderColor = 'var(--border-strong)')}
+                        onBlur={e => !errors.deskripsi && (e.target.style.borderColor = 'var(--border-default)')}
+                    />
                     {errors.deskripsi && (
-                        <p className="text-sm text-red-500 font-medium">{errors.deskripsi}</p>
+                        <p
+                            className="text-sm font-medium"
+                            style={{ color: 'var(--negative)' }}
+                        >
+                            {errors.deskripsi}
+                        </p>
                     )}
                 </div>
 
@@ -298,13 +417,28 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                     <button
                         type="button"
                         onClick={() => onNavigate('transaksi')}
-                        className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-bold font-serif text-lg transition-colors"
+                        className="flex-1 py-4 rounded-md font-bold font-serif text-lg transition-colors"
+                        style={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text-body)',
+                            border: '1px solid var(--border-default)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'}
                     >
                         Batal
                     </button>
                     <button 
                         type="submit"
-                        className="flex-[2] py-4 bg-[#5E6AD2] hover:bg-indigo-600 text-white rounded-md font-bold font-serif text-lg transition-colors shadow-sm"
+                        className="flex-[2] py-4 rounded-md font-bold font-serif text-lg transition-all"
+                        style={{
+                            backgroundColor: 'var(--accent)',
+                            color: 'var(--text-on-accent)',
+                            border: 'none',
+                            borderRadius: 'var(--r-pill)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
                     >
                         {isEditMode ? 'Simpan Perubahan' : 'Simpan Transaksi'}
                     </button>

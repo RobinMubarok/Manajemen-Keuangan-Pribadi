@@ -100,23 +100,49 @@ export default function LaporanPage() {
 
     return (
         <div className="p-6 lg:p-8 space-y-6 max-w-6xl mx-auto print:p-0 print:max-w-full">
-            {/* ── 1. HEADER (Disembunyikan tombolnya saat cetak jika perlu, tapi kita buat rapi) ── */}
+            {/* ── 1. HEADER ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 font-serif">Report Keuangan</h1>
-                    <p className="text-slate-500 mt-1 text-sm">Analisis lengkap transaksi bulanan</p>
+                    <h1
+                        className="text-2xl font-bold font-serif"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Report Keuangan
+                    </h1>
+                    <p
+                        className="mt-1 text-sm"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
+                        Analisis lengkap transaksi bulanan
+                    </p>
                 </div>
                 <div className="flex items-center gap-3 print:hidden">
                     <button 
                         onClick={exportPDF}
-                        className="flex items-center gap-2 bg-[#5E6AD2] hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all"
+                        style={{
+                            backgroundColor: 'var(--accent-muted)',
+                            color: 'var(--accent)',
+                            border: '1px solid var(--accent-border)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(74,222,128,0.2)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent-muted)'}
                     >
                         <Download size={18} />
                         Export PDF
                     </button>
                     <button 
                         onClick={exportCSV}
-                        className="flex items-center gap-2 bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all"
+                        style={{
+                            backgroundColor: 'var(--accent)',
+                            color: 'var(--text-on-accent)',
+                            border: 'none',
+                            borderRadius: 'var(--r-pill)',
+                            fontWeight: 700,
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
                     >
                         <Download size={18} />
                         Export CSV
@@ -124,83 +150,156 @@ export default function LaporanPage() {
                 </div>
             </div>
 
-            {/* ── 2. DATE SELECTOR BAR (Disembunyikan saat cetak) ── */}
-            <div className="bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 flex items-center gap-3 print:hidden">
-                <Calendar className="text-slate-700" size={22} />
+            {/* ── 2. DATE SELECTOR BAR ── */}
+            <div
+                className="p-4 rounded-2xl flex items-center gap-3 print:hidden"
+                style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                }}
+            >
+                <Calendar style={{ color: 'var(--text-muted)' }} size={22} />
                 
                 {/* Dropdown Bulan */}
                 <div className="relative flex items-center">
                     <select 
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="appearance-none bg-transparent border-none text-slate-700 font-medium focus:outline-none cursor-pointer pr-8 pl-1 text-sm sm:text-base"
+                        className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 text-sm sm:text-base bg-transparent"
+                        style={{ color: 'var(--text-body)', border: 'none' }}
                     >
                         {MONTHS.map(m => (
                             <option key={m.value} value={m.value}>{m.name}</option>
                         ))}
                     </select>
-                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 pointer-events-none" size={16} />
+                    <ChevronDown
+                        className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
+                        size={16}
+                        style={{ color: 'var(--text-body)' }}
+                    />
                 </div>
 
-                <div className="w-px h-6 bg-slate-200"></div>
+                <div
+                    className="w-px h-6"
+                    style={{ backgroundColor: 'var(--border-default)' }}
+                />
 
                 {/* Dropdown Tahun */}
                 <div className="relative flex items-center">
                     <select 
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(e.target.value)}
-                        className="appearance-none bg-transparent border-none text-slate-700 font-medium focus:outline-none cursor-pointer pr-8 pl-1 text-sm sm:text-base"
+                        className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 text-sm sm:text-base bg-transparent"
+                        style={{ color: 'var(--text-body)', border: 'none' }}
                     >
                         {YEARS.map(y => (
                             <option key={y} value={y}>{y}</option>
                         ))}
                     </select>
-                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 pointer-events-none" size={16} />
+                    <ChevronDown
+                        className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
+                        size={16}
+                        style={{ color: 'var(--text-body)' }}
+                    />
                 </div>
             </div>
 
             {/* ── 3. SUMMARY CARDS (2 Column Grid) ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Total Pemasukan */}
-                <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 flex flex-col justify-between min-h-[140px] relative overflow-hidden">
-                    <p className="text-sm font-semibold text-slate-500">Total Pemasukan</p>
-                    <p className="text-3xl font-bold font-serif text-slate-800 text-center mt-4">
+                <div
+                    className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px] relative overflow-hidden"
+                    style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        border: '1px solid var(--accent-border)',
+                    }}
+                >
+                    <p
+                        className="text-sm font-semibold"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
+                        Total Pemasukan
+                    </p>
+                    <p
+                        className="text-3xl font-bold font-serif text-center mt-4"
+                        style={{ color: 'var(--positive)' }}
+                    >
                         {formatRupiah(totalPemasukan)}
                     </p>
-                    <div className="absolute right-4 bottom-4 w-12 h-12 rounded-full bg-emerald-50 opacity-10 flex items-center justify-center pointer-events-none"></div>
+                    <div
+                        className="absolute right-4 bottom-4 w-12 h-12 rounded-full opacity-10 flex items-center justify-center pointer-events-none"
+                        style={{ backgroundColor: 'var(--accent)' }}
+                    />
                 </div>
 
                 {/* Total Pengeluaran */}
-                <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 flex flex-col justify-between min-h-[140px] relative overflow-hidden">
-                    <p className="text-sm font-semibold text-slate-500">Total Pengeluaran</p>
-                    <p className="text-3xl font-bold font-serif text-slate-800 text-center mt-4">
+                <div
+                    className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px] relative overflow-hidden"
+                    style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-default)',
+                    }}
+                >
+                    <p
+                        className="text-sm font-semibold"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
+                        Total Pengeluaran
+                    </p>
+                    <p
+                        className="text-3xl font-bold font-serif text-center mt-4"
+                        style={{ color: 'var(--negative)' }}
+                    >
                         {formatRupiah(totalPengeluaran)}
                     </p>
-                    <div className="absolute right-4 bottom-4 w-12 h-12 rounded-full bg-red-50 opacity-10 flex items-center justify-center pointer-events-none"></div>
+                    <div
+                        className="absolute right-4 bottom-4 w-12 h-12 rounded-full opacity-10 flex items-center justify-center pointer-events-none"
+                        style={{ backgroundColor: 'var(--negative)' }}
+                    />
                 </div>
             </div>
 
             {/* ── 4. TABLE SECTION ── */}
             <div className="space-y-4">
-                <h2 className="text-xl font-bold text-slate-800 font-serif">
+                <h2
+                    className="text-xl font-bold font-serif"
+                    style={{ color: 'var(--text-primary)' }}
+                >
                     Daftar Transaksi {currentMonthName} {selectedYear}
                 </h2>
 
-                <div className="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 overflow-hidden">
+                <div
+                    className="rounded-2xl overflow-hidden"
+                    style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-default)',
+                    }}
+                >
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-[#F8F9FA] border-b border-slate-100 text-slate-800 text-sm">
+                                <tr
+                                    className="text-sm"
+                                    style={{
+                                        backgroundColor: 'var(--bg-overlay)',
+                                        borderBottom: '1px solid var(--border-default)',
+                                        color: 'var(--text-primary)',
+                                    }}
+                                >
                                     <th className="px-6 py-4 font-bold font-serif whitespace-nowrap">Tanggal</th>
                                     <th className="px-6 py-4 font-bold font-serif whitespace-nowrap">Kategori</th>
                                     <th className="px-6 py-4 font-bold font-serif min-w-[200px]">Deskripsi</th>
                                     <th className="px-6 py-4 font-bold font-serif text-right whitespace-nowrap">Jumlah</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody>
                                 {filteredTransactions.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="px-6 py-10 text-center text-slate-400 text-sm">
+                                        <td
+                                            colSpan="4"
+                                            className="px-6 py-10 text-center text-sm"
+                                            style={{ color: 'var(--text-muted)' }}
+                                        >
                                             Tidak ada transaksi pada bulan ini.
                                         </td>
                                     </tr>
@@ -209,11 +308,37 @@ export default function LaporanPage() {
                                         const isNegative = tx.amount < 0;
                                         const displayAmount = (isNegative ? '-' : '+') + 'Rp. ' + Math.abs(tx.amount).toLocaleString('id-ID');
                                         return (
-                                            <tr key={tx.id} className="hover:bg-slate-50/30 transition-colors text-sm">
-                                                <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{tx.date}</td>
-                                                <td className="px-6 py-4 text-slate-800 font-medium whitespace-nowrap">{tx.category}</td>
-                                                <td className="px-6 py-4 text-slate-600">{tx.description}</td>
-                                                <td className={`px-6 py-4 font-bold text-right whitespace-nowrap ${isNegative ? 'text-[#e87c7c]' : 'text-[#6cc28a]'}`}>
+                                            <tr
+                                                key={tx.id}
+                                                className="transition-colors text-sm"
+                                                style={{ borderTop: '1px solid var(--border-subtle)' }}
+                                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                            >
+                                                <td
+                                                    className="px-6 py-4 whitespace-nowrap"
+                                                    style={{ color: 'var(--text-muted)' }}
+                                                >
+                                                    {tx.date}
+                                                </td>
+                                                <td
+                                                    className="px-6 py-4 font-medium whitespace-nowrap"
+                                                    style={{ color: 'var(--text-body)' }}
+                                                >
+                                                    {tx.category}
+                                                </td>
+                                                <td
+                                                    className="px-6 py-4"
+                                                    style={{ color: 'var(--text-muted)' }}
+                                                >
+                                                    {tx.description}
+                                                </td>
+                                                <td
+                                                    className="px-6 py-4 font-bold text-right whitespace-nowrap"
+                                                    style={{
+                                                        color: isNegative ? 'var(--negative)' : 'var(--positive)',
+                                                    }}
+                                                >
                                                     {displayAmount}
                                                 </td>
                                             </tr>
@@ -239,10 +364,6 @@ export default function LaporanPage() {
                     }
                     aside, header, .print\\:hidden {
                         display: none !important;
-                    }
-                    .shadow-\\[0_2px_10px_-3px_rgba\\(6\\,81\\,237\\,0\\.1\\)\\] {
-                        box-shadow: none !important;
-                        border: 1px solid #e2e8f0 !important;
                     }
                 }
             `}</style>

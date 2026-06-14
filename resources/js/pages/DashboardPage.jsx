@@ -44,8 +44,16 @@ export default function DashboardPage({ notifications, onMarkRead }) {
             {/* ── 1. HEADER ── */}
             <header className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
-                    <p className="text-sm text-slate-500 mt-0.5">
+                    <h1
+                        className="text-2xl font-bold"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Dashboard
+                    </h1>
+                    <p
+                        className="text-sm mt-0.5"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
                         Selamat datang! Berikut ringkasan keuangan Anda
                     </p>
                 </div>

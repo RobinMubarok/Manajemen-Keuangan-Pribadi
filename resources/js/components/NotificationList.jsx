@@ -5,31 +5,31 @@ import { Info, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 const TYPE_CONFIG = {
     info: {
         Icon: Info,
-        iconClass: 'text-blue-500',
-        bg: 'bg-blue-50',
-        border: 'border-blue-100',
-        dotColor: 'bg-blue-500',
+        color: 'var(--accent)',
+        bg: 'var(--accent-muted)',
+        border: 'var(--accent-border)',
+        dotColor: 'var(--accent)',
     },
     warning: {
         Icon: AlertTriangle,
-        iconClass: 'text-amber-500',
-        bg: 'bg-amber-50',
-        border: 'border-amber-100',
-        dotColor: 'bg-amber-500',
+        color: 'var(--warning)',
+        bg: 'rgba(251,191,36,0.10)',
+        border: 'rgba(251,191,36,0.25)',
+        dotColor: 'var(--warning)',
     },
     reminder: {
         Icon: Clock,
-        iconClass: 'text-slate-500',
-        bg: 'bg-slate-50',
-        border: 'border-slate-100',
-        dotColor: 'bg-slate-500',
+        color: 'var(--text-muted)',
+        bg: 'var(--bg-hover)',
+        border: 'var(--border-default)',
+        dotColor: 'var(--text-muted)',
     },
     success: {
         Icon: CheckCircle,
-        iconClass: 'text-indigo-500',
-        bg: 'bg-indigo-50',
-        border: 'border-indigo-100',
-        dotColor: 'bg-indigo-500',
+        color: 'var(--positive)',
+        bg: 'var(--accent-muted)',
+        border: 'var(--accent-border)',
+        dotColor: 'var(--positive)',
     },
 };
 
@@ -42,10 +42,24 @@ const TYPE_CONFIG = {
  */
 export default function NotificationList({ notifications }) {
     return (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div
+            className="rounded-2xl p-5"
+            style={{
+                backgroundColor: 'var(--bg-elevated)',
+                border: '1px solid var(--border-default)',
+            }}
+        >
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700">Notifikasi</h3>
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                <h3
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--text-body)' }}
+                >
+                    Notifikasi
+                </h3>
+                <span
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                    style={{ backgroundColor: 'var(--negative)', color: '#fff' }}
+                >
                     {notifications.filter((n) => !n.read).length}
                 </span>
             </div>
@@ -53,29 +67,44 @@ export default function NotificationList({ notifications }) {
             <ul className="space-y-2">
                 {notifications.map((notif) => {
                     const config = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.info;
-                    const { Icon, iconClass, bg, border, dotColor } = config;
+                    const { Icon, color, bg, border, dotColor } = config;
 
                     return (
                         <li
                             key={notif.id}
-                            className={`flex items-start gap-3 p-3 rounded-xl border ${bg} ${border} transition-opacity`}
+                            className="flex items-start gap-3 p-3 rounded-xl transition-opacity"
+                            style={{
+                                backgroundColor: bg,
+                                border: `1px solid ${border}`,
+                            }}
                         >
                             {/* Ikon */}
                             <span className="flex-shrink-0 mt-0.5">
-                                <Icon size={16} className={iconClass} />
+                                <Icon size={16} style={{ color }} />
                             </span>
 
                             {/* Konten */}
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-slate-700 leading-snug">
+                                <p
+                                    className="text-xs font-medium leading-snug"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
                                     {notif.message}
                                 </p>
-                                <p className="text-[11px] text-slate-400 mt-0.5">{notif.time}</p>
+                                <p
+                                    className="text-[11px] mt-0.5"
+                                    style={{ color: 'var(--text-muted)' }}
+                                >
+                                    {notif.time}
+                                </p>
                             </div>
 
                             {/* Dot belum dibaca */}
                             {!notif.read && (
-                                <span className={`flex-shrink-0 mt-1.5 w-2 h-2 rounded-full ${dotColor}`} />
+                                <span
+                                    className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: dotColor }}
+                                />
                             )}
                         </li>
                     );

@@ -5,11 +5,10 @@ import {
     Cell,
     Tooltip,
     ResponsiveContainer,
-    Legend,
 } from 'recharts';
 
-/** Warna per kategori (konsisten dengan wireframe) */
-const COLORS = ['#f97316', '#eab308', '#6366f1', '#22c55e', '#3b82f6'];
+/** Warna per kategori — green-toned palette for dark theme */
+const COLORS = ['#4ade80', '#22c55e', '#86efac', '#fbbf24', '#f87171'];
 
 /**
  * Tooltip custom agar tampil dalam Bahasa Indonesia dengan format Rupiah.
@@ -18,9 +17,20 @@ function CustomTooltip({ active, payload }) {
     if (active && payload && payload.length) {
         const { name, value } = payload[0];
         return (
-            <div className="bg-white border border-slate-100 shadow-lg rounded-xl px-3 py-2 text-xs">
-                <p className="font-semibold text-slate-700">{name}</p>
-                <p className="text-indigo-600 font-bold">{value}%</p>
+            <div
+                className="rounded-xl px-3 py-2 text-xs"
+                style={{
+                    backgroundColor: 'var(--bg-overlay)',
+                    border: '1px solid var(--border-default)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                }}
+            >
+                <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {name}
+                </p>
+                <p className="font-bold" style={{ color: 'var(--accent)' }}>
+                    {value}%
+                </p>
             </div>
         );
     }
@@ -40,9 +50,17 @@ function CustomLegend({ data }) {
                             className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
                             style={{ backgroundColor: COLORS[index % COLORS.length] }}
                         />
-                        <span className="text-xs text-slate-600 truncate">{entry.name}</span>
+                        <span
+                            className="text-xs truncate"
+                            style={{ color: 'var(--text-body)' }}
+                        >
+                            {entry.name}
+                        </span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-700 flex-shrink-0">
+                    <span
+                        className="text-xs font-semibold flex-shrink-0"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         {entry.value}%
                     </span>
                 </li>
@@ -61,8 +79,19 @@ function CustomLegend({ data }) {
  */
 export default function SpendingDonutChart({ data, total }) {
     return (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 h-full">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Pengeluaran per Kategori</h3>
+        <div
+            className="rounded-2xl p-5 h-full"
+            style={{
+                backgroundColor: 'var(--bg-elevated)',
+                border: '1px solid var(--border-default)',
+            }}
+        >
+            <h3
+                className="text-sm font-semibold mb-4"
+                style={{ color: 'var(--text-body)' }}
+            >
+                Pengeluaran per Kategori
+            </h3>
 
             <div className="flex items-center gap-4">
                 {/* Donut */}
@@ -95,8 +124,18 @@ export default function SpendingDonutChart({ data, total }) {
                     {/* Label total di tengah */}
                     {total && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-[10px] text-slate-400">Total</span>
-                            <span className="text-sm font-bold text-slate-800 leading-tight">{total}</span>
+                            <span
+                                className="text-[10px]"
+                                style={{ color: 'var(--text-muted)' }}
+                            >
+                                Total
+                            </span>
+                            <span
+                                className="text-sm font-bold leading-tight"
+                                style={{ color: 'var(--accent)' }}
+                            >
+                                {total}
+                            </span>
                         </div>
                     )}
                 </div>

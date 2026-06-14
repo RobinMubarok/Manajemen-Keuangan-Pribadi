@@ -16,43 +16,76 @@ export default function BudgetProgress({ used, total, label = 'Pengeluaran budge
     const isDanger = percent >= 90;
 
     const barColor = isDanger
-        ? 'bg-red-500'
+        ? 'var(--negative)'
         : isWarning
-        ? 'bg-amber-400'
-        : 'bg-indigo-500';
+        ? 'var(--warning)'
+        : 'var(--accent)';
 
     const formatRp = (val) =>
         'Rp ' + val.toLocaleString('id-ID');
 
     return (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div
+            className="rounded-2xl p-5"
+            style={{
+                backgroundColor: 'var(--bg-elevated)',
+                border: '1px solid var(--border-default)',
+            }}
+        >
             <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-slate-700">{label}</p>
+                <p
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--text-body)' }}
+                >
+                    {label}
+                </p>
                 <div className="flex items-center gap-1.5">
                     {isWarning && (
                         <AlertTriangle
                             size={14}
-                            className={isDanger ? 'text-red-500' : 'text-amber-400'}
+                            style={{ color: isDanger ? 'var(--negative)' : 'var(--warning)' }}
                         />
                     )}
-                    <span className="text-sm font-semibold text-slate-800">
+                    <span
+                        className="text-sm font-semibold"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         {formatRp(used)}{' '}
-                        <span className="font-normal text-slate-400">/ {formatRp(total)}</span>
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+                            / {formatRp(total)}
+                        </span>
                     </span>
                 </div>
             </div>
 
             {/* Track */}
-            <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div
+                className="relative h-3 rounded-full overflow-hidden"
+                style={{ backgroundColor: 'var(--bg-overlay)' }}
+            >
                 <div
-                    className={`h-full rounded-full transition-all duration-700 ease-out ${barColor}`}
-                    style={{ width: `${percent}%` }}
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{ width: `${percent}%`, backgroundColor: barColor }}
                 />
             </div>
 
             <div className="flex justify-between mt-2">
-                <span className="text-xs text-slate-400">0%</span>
-                <span className={`text-xs font-medium ${isDanger ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-slate-400'}`}>
+                <span
+                    className="text-xs"
+                    style={{ color: 'var(--text-disabled)' }}
+                >
+                    0%
+                </span>
+                <span
+                    className="text-xs font-medium"
+                    style={{
+                        color: isDanger
+                            ? 'var(--negative)'
+                            : isWarning
+                            ? 'var(--warning)'
+                            : 'var(--text-muted)',
+                    }}
+                >
                     {percent.toFixed(0)}% terpakai
                 </span>
             </div>

@@ -10,3 +10,96 @@
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK GREEN FINANCE DESIGN TOKENS — Spendly Aesthetic
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+    /* Backgrounds */
+    --bg-base:        #080f08;
+    --bg-primary:     #0f1a0f;
+    --bg-elevated:    #162416;
+    --bg-overlay:     #1c301c;
+    --bg-input:       #0d160d;
+    --bg-hover:       #1f351f;
+
+    /* Accent */
+    --accent:         #4ade80;
+    --accent-hover:   #22c55e;
+    --accent-press:   #16a34a;
+    --accent-muted:   rgba(74, 222, 128, 0.12);
+    --accent-border:  rgba(74, 222, 128, 0.25);
+
+    /* Text */
+    --text-primary:   #f0fdf0;
+    --text-body:      #c8e6c8;
+    --text-muted:     #6aaa6a;
+    --text-disabled:  #3a5a3a;
+    --text-on-accent: #071207;
+
+    /* Borders */
+    --border-subtle:  #1a2e1a;
+    --border-default: #2a4a2a;
+    --border-strong:  #3d6e3d;
+
+    /* Semantic */
+    --positive:       #4ade80;
+    --negative:       #f87171;
+    --warning:        #fbbf24;
+
+    /* Radius */
+    --r-sm:   8px;
+    --r-md:   12px;
+    --r-lg:   16px;
+    --r-pill: 999px;
+}
+
+/* ── Base ── */
+html, body {
+    background-color: var(--bg-primary);
+    color: var(--text-body);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    scrollbar-color: #2a4a2a var(--bg-primary);
+    scrollbar-width: thin;
+}
+
+/* ── Scrollbar (webkit) ── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: var(--r-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-strong);
+}
+
+/* ── Date input calendar icon color fix ── */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7) sepia(1) saturate(2) hue-rotate(90deg);
+    cursor: pointer;
+}
+
+/* ── Select option dropdown ── */
+option {
+    background-color: var(--bg-overlay) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ── Keyframe for modal entrance ── */
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

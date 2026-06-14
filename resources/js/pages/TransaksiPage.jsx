@@ -75,12 +75,12 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
      */
     const renderSortIcon = (key) => {
         if (!sortConfig || sortConfig.key !== key) {
-            return <ArrowUpDown size={14} className="text-slate-400 ml-1 inline-block" />;
+            return <ArrowUpDown size={14} className="ml-1 inline-block" style={{ color: 'var(--text-disabled)' }} />;
         }
         if (sortConfig.direction === 'asc') {
-            return <ChevronUp size={14} className="text-[#5E6AD2] ml-1 inline-block" />;
+            return <ChevronUp size={14} className="ml-1 inline-block" style={{ color: 'var(--accent)' }} />;
         }
-        return <ChevronDown size={14} className="text-[#5E6AD2] ml-1 inline-block" />;
+        return <ChevronDown size={14} className="ml-1 inline-block" style={{ color: 'var(--accent)' }} />;
     };
 
     /** Transaksi setelah filter + search + sort */
@@ -146,11 +146,11 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
     };
 
     /** Class helper untuk header kolom yang bisa di-sort */
-    const sortableHeaderClass = (key) => {
+    const sortableHeaderStyle = (key) => {
         const isActive = sortConfig?.key === key;
-        return `px-6 py-4 font-bold font-serif whitespace-nowrap cursor-pointer select-none transition-colors hover:text-[#5E6AD2] ${
-            isActive ? 'text-[#5E6AD2]' : 'text-slate-800'
-        }`;
+        return {
+            color: isActive ? 'var(--accent)' : 'var(--text-primary)',
+        };
     };
 
     /** Buka modal konfirmasi delete */
@@ -176,27 +176,60 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 font-serif">Transaksi</h1>
-                    <p className="text-slate-600 mt-1">Kelola semua transaksi keuangan anda</p>
+                    <h1
+                        className="text-2xl font-bold font-serif"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        Transaksi
+                    </h1>
+                    <p
+                        className="mt-1"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
+                        Kelola semua transaksi keuangan anda
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={() => setIsCategoryModalOpen(true)}
-                        className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm border border-slate-200"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors"
+                        style={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text-body)',
+                            border: '1px solid var(--border-default)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'}
                     >
                         <FolderOpen size={18} />
                         Kelola Kategori
                     </button>
                     <button 
                         onClick={() => onNavigate('atur-budget')}
-                        className="flex items-center gap-2 bg-[#FFA93B] hover:bg-orange-500 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors"
+                        style={{
+                            backgroundColor: 'rgba(251,191,36,0.15)',
+                            color: 'var(--warning)',
+                            border: '1px solid rgba(251,191,36,0.25)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(251,191,36,0.25)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(251,191,36,0.15)'}
                     >
                         <Settings size={18} />
                         Set Budget
                     </button>
                     <button 
                         onClick={() => onNavigate('tambah-transaksi')}
-                        className="flex items-center gap-2 bg-[#5E6AD2] hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all"
+                        style={{
+                            backgroundColor: 'var(--accent)',
+                            color: 'var(--text-on-accent)',
+                            border: 'none',
+                            borderRadius: 'var(--r-pill)',
+                            fontWeight: 700,
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
                     >
                         <Plus size={18} />
                         Tambah Transaksi
@@ -205,15 +238,31 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div
+                className="p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4"
+                style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                }}
+            >
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <Search
+                        className="absolute left-3 top-1/2 -translate-y-1/2"
+                        size={20}
+                        style={{ color: 'var(--text-muted)' }}
+                    />
                     <input 
                         type="text" 
                         placeholder="Cari transaksi..." 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-transparent focus:outline-none text-slate-700"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl focus:outline-none"
+                        style={{
+                            backgroundColor: 'var(--bg-input)',
+                            border: '1px solid var(--border-default)',
+                            color: 'var(--text-primary)',
+                            borderRadius: 'var(--r-md)',
+                        }}
                     />
                 </div>
                 <div className="flex items-center gap-4 w-full md:w-auto">
@@ -221,61 +270,115 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                         <select 
                             value={filterTipe}
                             onChange={(e) => setFilterTipe(e.target.value)}
-                            className="w-full appearance-none bg-transparent border-none text-slate-700 focus:outline-none cursor-pointer pr-8 font-medium"
+                            className="w-full appearance-none focus:outline-none cursor-pointer pr-8 font-medium bg-transparent"
+                            style={{ color: 'var(--text-body)', border: 'none' }}
                         >
                             <option>Semua Tipe</option>
                             <option>Pemasukan</option>
                             <option>Pengeluaran</option>
                         </select>
-                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-800 pointer-events-none" size={20} />
+                        <ChevronDown
+                            className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"
+                            size={20}
+                            style={{ color: 'var(--text-body)' }}
+                        />
                     </div>
-                    <div className="w-px h-6 bg-slate-200"></div>
+                    <div
+                        className="w-px h-6"
+                        style={{ backgroundColor: 'var(--border-default)' }}
+                    />
                     <div className="relative w-full md:w-44 flex items-center justify-between">
                         <select 
                             value={filterKategori}
                             onChange={(e) => setFilterKategori(e.target.value)}
-                            className="w-full appearance-none bg-transparent border-none text-slate-700 focus:outline-none cursor-pointer pr-8 font-medium"
+                            className="w-full appearance-none focus:outline-none cursor-pointer pr-8 font-medium bg-transparent"
+                            style={{ color: 'var(--text-body)', border: 'none' }}
                         >
                             <option>Semua Kategori</option>
                             {uniqueCategories.map((cat) => (
                                 <option key={cat}>{cat}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-800 pointer-events-none" size={20} />
+                        <ChevronDown
+                            className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"
+                            size={20}
+                            style={{ color: 'var(--text-body)' }}
+                        />
                     </div>
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 overflow-hidden">
+            <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                }}
+            >
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-[#F8F9FA] border-b border-slate-100 text-slate-800 text-sm">
-                                <th className={sortableHeaderClass('date')} onClick={() => handleSort('date')}>
+                            <tr
+                                className="text-sm"
+                                style={{
+                                    backgroundColor: 'var(--bg-overlay)',
+                                    borderBottom: '1px solid var(--border-default)',
+                                }}
+                            >
+                                <th
+                                    className="px-6 py-4 font-bold font-serif whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    style={sortableHeaderStyle('date')}
+                                    onClick={() => handleSort('date')}
+                                >
                                     Tanggal {renderSortIcon('date')}
                                 </th>
-                                <th className={sortableHeaderClass('category')} onClick={() => handleSort('category')}>
+                                <th
+                                    className="px-6 py-4 font-bold font-serif whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    style={sortableHeaderStyle('category')}
+                                    onClick={() => handleSort('category')}
+                                >
                                     Kategori {renderSortIcon('category')}
                                 </th>
-                                <th className={`${sortableHeaderClass('description')} min-w-[200px]`} onClick={() => handleSort('description')}>
+                                <th
+                                    className="px-6 py-4 font-bold font-serif min-w-[200px] cursor-pointer select-none transition-colors"
+                                    style={sortableHeaderStyle('description')}
+                                    onClick={() => handleSort('description')}
+                                >
                                     Deskripsi {renderSortIcon('description')}
                                 </th>
-                                <th className={`${sortableHeaderClass('amount')} text-center`} onClick={() => handleSort('amount')}>
+                                <th
+                                    className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    style={sortableHeaderStyle('amount')}
+                                    onClick={() => handleSort('amount')}
+                                >
                                     Jumlah {renderSortIcon('amount')}
                                 </th>
-                                <th className={`${sortableHeaderClass('type')} text-center`} onClick={() => handleSort('type')}>
+                                <th
+                                    className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    style={sortableHeaderStyle('type')}
+                                    onClick={() => handleSort('type')}
+                                >
                                     Tipe {renderSortIcon('type')}
                                 </th>
-                                <th className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap">Aksi</th>
+                                <th
+                                    className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Aksi
+                                </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {filteredTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                                    <td
+                                        colSpan={6}
+                                        className="px-6 py-12 text-center"
+                                        style={{ color: 'var(--text-muted)' }}
+                                    >
                                         <div className="flex flex-col items-center gap-2">
-                                            <Search size={32} className="text-slate-300" />
+                                            <Search size={32} style={{ color: 'var(--text-disabled)' }} />
                                             <p className="font-medium">Tidak ada transaksi ditemukan</p>
                                             <p className="text-sm">Coba ubah filter atau kata kunci pencarian</p>
                                         </div>
@@ -283,19 +386,54 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                                 </tr>
                             ) : (
                                 filteredTransactions.map((tx) => (
-                                    <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors text-sm">
-                                        <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{tx.date}</td>
-                                        <td className="px-6 py-4 text-slate-800 font-medium whitespace-nowrap">{tx.category}</td>
-                                        <td className="px-6 py-4 text-slate-600">{tx.description}</td>
-                                        <td className={`px-6 py-4 font-bold text-center whitespace-nowrap ${tx.amount < 0 ? 'text-[#e87c7c]' : 'text-[#6cc28a]'}`}>
+                                    <tr
+                                        key={tx.id}
+                                        className="transition-colors text-sm"
+                                        style={{ borderTop: '1px solid var(--border-subtle)' }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                        <td
+                                            className="px-6 py-4 whitespace-nowrap"
+                                            style={{ color: 'var(--text-muted)' }}
+                                        >
+                                            {tx.date}
+                                        </td>
+                                        <td
+                                            className="px-6 py-4 font-medium whitespace-nowrap"
+                                            style={{ color: 'var(--text-body)' }}
+                                        >
+                                            {tx.category}
+                                        </td>
+                                        <td
+                                            className="px-6 py-4"
+                                            style={{ color: 'var(--text-muted)' }}
+                                        >
+                                            {tx.description}
+                                        </td>
+                                        <td
+                                            className="px-6 py-4 font-bold text-center whitespace-nowrap"
+                                            style={{
+                                                color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)',
+                                            }}
+                                        >
                                             {formatRupiah(tx.amount)}
                                         </td>
                                         <td className="px-6 py-4 text-center whitespace-nowrap">
-                                            <span className={`inline-flex px-4 py-1.5 rounded-full text-xs font-semibold ${
-                                                tx.type === 'Pemasukan' 
-                                                ? 'bg-[#e7f5eb] text-[#6cc28a]' 
-                                                : 'bg-[#fbeaea] text-[#e87c7c]'
-                                            }`}>
+                                            <span
+                                                className="inline-flex px-4 py-1.5 rounded-full text-xs font-semibold"
+                                                style={
+                                                    tx.type === 'Pemasukan'
+                                                        ? {
+                                                              backgroundColor: 'var(--accent-muted)',
+                                                              color: 'var(--positive)',
+                                                          }
+                                                        : {
+                                                              backgroundColor: 'rgba(248,113,113,0.12)',
+                                                              color: 'var(--negative)',
+                                                          }
+                                                }
+                                            >
                                                 {tx.type}
                                             </span>
                                         </td>
@@ -303,14 +441,26 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                                             <div className="flex items-center justify-center gap-4">
                                                 <button 
                                                     onClick={() => onNavigateToEdit(tx)}
-                                                    className="text-[#5E6AD2] hover:text-indigo-700 transition-colors bg-indigo-50 p-1.5 rounded-md"
+                                                    className="p-1.5 rounded-md transition-colors"
+                                                    style={{
+                                                        color: 'var(--accent)',
+                                                        backgroundColor: 'var(--accent-muted)',
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-border)'}
+                                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent-muted)'}
                                                     title="Edit transaksi"
                                                 >
                                                     <Edit2 size={16} />
                                                 </button>
                                                 <button 
                                                     onClick={() => openDeleteModal(tx)}
-                                                    className="text-[#e87c7c] hover:text-red-600 transition-colors bg-red-50 p-1.5 rounded-md"
+                                                    className="p-1.5 rounded-md transition-colors"
+                                                    style={{
+                                                        color: 'var(--negative)',
+                                                        backgroundColor: 'rgba(248,113,113,0.12)',
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.22)'}
+                                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.12)'}
                                                     title="Hapus transaksi"
                                                 >
                                                     <Trash2 size={16} />
@@ -326,7 +476,14 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
 
                 {/* Footer: result count */}
                 {filteredTransactions.length > 0 && (
-                    <div className="px-6 py-3 bg-[#F8F9FA] border-t border-slate-100 text-xs text-slate-500">
+                    <div
+                        className="px-6 py-3 text-xs"
+                        style={{
+                            backgroundColor: 'var(--bg-overlay)',
+                            borderTop: '1px solid var(--border-default)',
+                            color: 'var(--text-muted)',
+                        }}
+                    >
                         Menampilkan {filteredTransactions.length} dari {transactions.length} transaksi
                     </div>
                 )}
@@ -337,23 +494,41 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     {/* Backdrop */}
                     <div 
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        className="absolute inset-0 backdrop-blur-sm"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
                         onClick={closeDeleteModal}
                     />
 
                     {/* Modal */}
-                    <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-0 overflow-hidden animate-[modalIn_0.2s_ease-out]">
+                    <div
+                        className="relative rounded-2xl shadow-2xl max-w-md w-full p-0 overflow-hidden animate-[modalIn_0.2s_ease-out]"
+                        style={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-default)',
+                        }}
+                    >
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-6 pb-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                                    <AlertTriangle size={20} className="text-[#e87c7c]" />
+                                <div
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                    style={{ backgroundColor: 'rgba(248,113,113,0.15)' }}
+                                >
+                                    <AlertTriangle size={20} style={{ color: 'var(--negative)' }} />
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-800 font-serif">Hapus Transaksi</h3>
+                                <h3
+                                    className="text-lg font-bold font-serif"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Hapus Transaksi
+                                </h3>
                             </div>
                             <button 
                                 onClick={closeDeleteModal}
-                                className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                                className="transition-colors p-1"
+                                style={{ color: 'var(--text-muted)' }}
+                                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-body)'}
+                                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                             >
                                 <X size={20} />
                             </button>
@@ -361,25 +536,52 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
 
                         {/* Body */}
                         <div className="px-6 py-5">
-                            <p className="text-slate-600 text-sm leading-relaxed">
+                            <p
+                                className="text-sm leading-relaxed"
+                                style={{ color: 'var(--text-body)' }}
+                            >
                                 Apakah anda yakin ingin menghapus transaksi berikut?
                             </p>
                             {deleteModal.transaction && (
-                                <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                <div
+                                    className="mt-4 rounded-xl p-4"
+                                    style={{
+                                        backgroundColor: 'var(--bg-overlay)',
+                                        border: '1px solid var(--border-default)',
+                                    }}
+                                >
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="font-semibold text-slate-800 text-sm">{deleteModal.transaction.description}</p>
-                                            <p className="text-xs text-slate-500 mt-1">
+                                            <p
+                                                className="font-semibold text-sm"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {deleteModal.transaction.description}
+                                            </p>
+                                            <p
+                                                className="text-xs mt-1"
+                                                style={{ color: 'var(--text-muted)' }}
+                                            >
                                                 {deleteModal.transaction.category} • {deleteModal.transaction.date}
                                             </p>
                                         </div>
-                                        <span className={`font-bold text-sm ${deleteModal.transaction.amount < 0 ? 'text-[#e87c7c]' : 'text-[#6cc28a]'}`}>
+                                        <span
+                                            className="font-bold text-sm"
+                                            style={{
+                                                color: deleteModal.transaction.amount < 0
+                                                    ? 'var(--negative)'
+                                                    : 'var(--positive)',
+                                            }}
+                                        >
                                             {formatRupiah(deleteModal.transaction.amount)}
                                         </span>
                                     </div>
                                 </div>
                             )}
-                            <p className="text-xs text-slate-400 mt-3">
+                            <p
+                                className="text-xs mt-3"
+                                style={{ color: 'var(--text-disabled)' }}
+                            >
                                 Tindakan ini tidak dapat dibatalkan.
                             </p>
                         </div>
@@ -388,13 +590,27 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                         <div className="flex items-center gap-3 px-6 pb-6">
                             <button
                                 onClick={closeDeleteModal}
-                                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-sm transition-colors"
+                                className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--bg-overlay)',
+                                    color: 'var(--text-body)',
+                                    border: '1px solid var(--border-default)',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--bg-overlay)'}
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={confirmDelete}
-                                className="flex-1 py-3 px-4 bg-[#e87c7c] hover:bg-red-500 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm"
+                                className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--negative)',
+                                    color: '#fff',
+                                    border: 'none',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#ef4444'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--negative)'}
                             >
                                 Ya, Hapus
                             </button>

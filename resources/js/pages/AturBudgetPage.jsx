@@ -68,19 +68,37 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
         onNavigate('transaksi');
     };
 
+    const inputStyle = {
+        backgroundColor: 'var(--bg-input)',
+        border: '2px solid var(--border-default)',
+        color: 'var(--text-primary)',
+        borderRadius: 'var(--r-md)',
+    };
+
     return (
         <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 pb-20">
-            <h1 className="text-3xl font-bold text-slate-900 font-serif mb-8">Atur Budget</h1>
+            <h1
+                className="text-3xl font-bold font-serif mb-8"
+                style={{ color: 'var(--text-primary)' }}
+            >
+                Atur Budget
+            </h1>
 
             {/* Budget Harian & Bulanan */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Harian Budget */}
                 <div className="space-y-3">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         Harian Budget
                     </label>
                     <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-medium text-sm">
+                        <span
+                            className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
                             Rp
                         </span>
                         <input
@@ -89,19 +107,33 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                             value={formatDisplayValue(harianBudget)}
                             onChange={(e) => setHarianBudget(handleAmountChange(e.target.value.replace(/\./g, '')))}
                             placeholder="0"
-                            className="w-full pl-12 pr-4 py-4 rounded-md bg-[#DFDFDF] border-none text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] font-medium"
+                            className="w-full pl-12 pr-4 py-4 rounded-md font-medium focus:outline-none transition-colors"
+                            style={inputStyle}
+                            onFocus={e => e.target.style.borderColor = 'var(--border-strong)'}
+                            onBlur={e => e.target.style.borderColor = 'var(--border-default)'}
                         />
                     </div>
-                    <p className="text-sm text-slate-500">Atur budget harian anda</p>
+                    <p
+                        className="text-sm"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
+                        Atur budget harian anda
+                    </p>
                 </div>
 
                 {/* Bulanan Budget */}
                 <div className="space-y-3">
-                    <label className="block text-slate-900 font-bold font-serif text-lg">
+                    <label
+                        className="block font-bold font-serif text-lg"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         Bulanan Budget
                     </label>
                     <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-medium text-sm">
+                        <span
+                            className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
                             Rp
                         </span>
                         <input
@@ -110,66 +142,109 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                             value={formatDisplayValue(bulananBudget)}
                             onChange={(e) => setBulananBudget(handleAmountChange(e.target.value.replace(/\./g, '')))}
                             placeholder="0"
-                            className="w-full pl-12 pr-4 py-4 rounded-md bg-[#DFDFDF] border-none text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] font-medium"
+                            className="w-full pl-12 pr-4 py-4 rounded-md font-medium focus:outline-none transition-colors"
+                            style={inputStyle}
+                            onFocus={e => e.target.style.borderColor = 'var(--border-strong)'}
+                            onBlur={e => e.target.style.borderColor = 'var(--border-default)'}
                         />
                     </div>
-                    <p className="text-sm text-slate-500">Atur budget bulanan anda</p>
+                    <p
+                        className="text-sm"
+                        style={{ color: 'var(--text-muted)' }}
+                    >
+                        Atur budget bulanan anda
+                    </p>
                 </div>
             </div>
 
             {/* Kategori Budget / Periode */}
             <div className="space-y-3 max-w-3xl">
-                <label className="block text-slate-900 font-bold font-serif text-lg">
+                <label
+                    className="block font-bold font-serif text-lg"
+                    style={{ color: 'var(--text-primary)' }}
+                >
                     Kategori Budget
                 </label>
                 <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" size={20} />
+                    <Calendar
+                        className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                        size={20}
+                        style={{ color: 'var(--text-muted)' }}
+                    />
                     <select
                         value={kategoriBudget}
                         onChange={(e) => setKategoriBudget(e.target.value)}
-                        className="w-full appearance-none bg-[#DFDFDF] border-none rounded-md pl-12 pr-12 py-4 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] cursor-pointer"
+                        className="w-full appearance-none rounded-md pl-12 pr-12 py-4 font-medium focus:outline-none cursor-pointer transition-colors"
+                        style={inputStyle}
                     >
                         <option value="Harian">Harian</option>
                         <option value="Mingguan">Mingguan</option>
                         <option value="Bulanan">Bulanan</option>
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-800 pointer-events-none" size={24} />
+                    <ChevronDown
+                        className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                        size={24}
+                        style={{ color: 'var(--text-muted)' }}
+                    />
                 </div>
-                <p className="text-sm text-slate-500">Pilih periode budget</p>
+                <p
+                    className="text-sm"
+                    style={{ color: 'var(--text-muted)' }}
+                >
+                    Pilih periode budget
+                </p>
             </div>
 
             {/* Notifikasi Toggle */}
             <div className="flex items-center justify-between max-w-3xl py-4">
                 <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 mt-0.5">
-                        <Bell size={22} className="text-slate-700" />
+                        <Bell size={22} style={{ color: 'var(--text-body)' }} />
                     </div>
                     <div>
-                        <p className="text-slate-900 font-bold font-serif">Aktifkan notifikasi</p>
-                        <p className="text-sm text-slate-500">Aktifkan notifikasi untuk kontrol pengeluaran anda</p>
+                        <p
+                            className="font-bold font-serif"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            Aktifkan notifikasi
+                        </p>
+                        <p
+                            className="text-sm"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
+                            Aktifkan notifikasi untuk kontrol pengeluaran anda
+                        </p>
                     </div>
                 </div>
                 <button
                     type="button"
                     onClick={() => setNotifikasiAktif(!notifikasiAktif)}
-                    className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#5E6AD2] focus:ring-offset-2 ${
-                        notifikasiAktif ? 'bg-slate-800' : 'bg-slate-300'
-                    }`}
+                    className="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    style={{
+                        backgroundColor: notifikasiAktif ? 'var(--accent)' : 'var(--bg-overlay)',
+                    }}
                     role="switch"
                     aria-checked={notifikasiAktif}
                     aria-label="Toggle notifikasi"
                 >
                     <span
-                        className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                            notifikasiAktif ? 'translate-x-5' : 'translate-x-0'
-                        }`}
+                        className="pointer-events-none inline-block h-6 w-6 transform rounded-full shadow ring-0 transition duration-200 ease-in-out"
+                        style={{
+                            backgroundColor: notifikasiAktif ? 'var(--text-on-accent)' : 'var(--text-muted)',
+                            transform: notifikasiAktif ? 'translateX(1.25rem)' : 'translateX(0)',
+                        }}
                     />
                 </button>
             </div>
 
             {/* Alert Pengeluaran */}
             <div className="space-y-4 max-w-3xl">
-                <h2 className="text-slate-900 font-bold font-serif text-lg">Alert Pengeluaran</h2>
+                <h2
+                    className="font-bold font-serif text-lg"
+                    style={{ color: 'var(--text-primary)' }}
+                >
+                    Alert Pengeluaran
+                </h2>
 
                 {/* Alert 1: Budget hampir habis */}
                 <label className="flex items-center gap-3 cursor-pointer group">
@@ -180,20 +255,37 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                             onChange={(e) => setAlertHampirHabis(e.target.checked)}
                             className="peer sr-only"
                         />
-                        <div className="w-6 h-6 border-2 border-slate-400 rounded-md peer-checked:bg-slate-800 peer-checked:border-slate-800 transition-colors flex items-center justify-center">
+                        <div
+                            className="w-6 h-6 border-2 rounded-md transition-colors flex items-center justify-center"
+                            style={{
+                                borderColor: alertHampirHabis ? 'var(--accent)' : 'var(--border-strong)',
+                                backgroundColor: alertHampirHabis ? 'var(--accent)' : 'transparent',
+                            }}
+                        >
                             {alertHampirHabis && (
-                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <svg
+                                    className="w-4 h-4"
+                                    style={{ color: 'var(--text-on-accent)' }}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={3}
+                                >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             )}
                         </div>
                     </div>
-                    <span className="text-sm text-slate-600 flex-1">
+                    <span
+                        className="text-sm flex-1"
+                        style={{ color: 'var(--text-body)' }}
+                    >
                         Aktifkan notifikasi untuk kontrol pengeluaran anda
                     </span>
                     <button
                         type="button"
-                        className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="flex-shrink-0 transition-colors"
+                        style={{ color: 'var(--text-muted)' }}
                         title="Notifikasi saat budget mendekati batas (80%)"
                     >
                         <Info size={18} />
@@ -209,20 +301,37 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                             onChange={(e) => setAlertMelebihi(e.target.checked)}
                             className="peer sr-only"
                         />
-                        <div className="w-6 h-6 border-2 border-slate-400 rounded-md peer-checked:bg-slate-800 peer-checked:border-slate-800 transition-colors flex items-center justify-center">
+                        <div
+                            className="w-6 h-6 border-2 rounded-md transition-colors flex items-center justify-center"
+                            style={{
+                                borderColor: alertMelebihi ? 'var(--accent)' : 'var(--border-strong)',
+                                backgroundColor: alertMelebihi ? 'var(--accent)' : 'transparent',
+                            }}
+                        >
                             {alertMelebihi && (
-                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <svg
+                                    className="w-4 h-4"
+                                    style={{ color: 'var(--text-on-accent)' }}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={3}
+                                >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             )}
                         </div>
                     </div>
-                    <span className="text-sm text-slate-600 flex-1">
+                    <span
+                        className="text-sm flex-1"
+                        style={{ color: 'var(--text-body)' }}
+                    >
                         Aktifkan notifikasi untuk kontrol pengeluaran anda
                     </span>
                     <button
                         type="button"
-                        className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="flex-shrink-0 transition-colors"
+                        style={{ color: 'var(--text-muted)' }}
                         title="Notifikasi saat budget sudah melebihi batas (100%)"
                     >
                         <Info size={18} />
@@ -235,14 +344,29 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                 <button
                     type="button"
                     onClick={handleBatal}
-                    className="px-8 py-3 bg-[#FFA93B] hover:bg-orange-500 text-white rounded-lg font-bold font-serif text-base transition-colors shadow-sm"
+                    className="px-8 py-3 rounded-lg font-bold font-serif text-base transition-colors"
+                    style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        color: 'var(--text-body)',
+                        border: '1px solid var(--border-default)',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'}
                 >
                     Batal
                 </button>
                 <button
                     type="button"
                     onClick={handleSimpan}
-                    className="px-8 py-3 bg-[#509C64] hover:bg-green-700 text-white rounded-lg font-bold font-serif text-base transition-colors shadow-sm"
+                    className="px-8 py-3 rounded-lg font-bold font-serif text-base transition-all"
+                    style={{
+                        backgroundColor: 'var(--accent)',
+                        color: 'var(--text-on-accent)',
+                        border: 'none',
+                        borderRadius: 'var(--r-pill)',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
                 >
                     Simpan
                 </button>

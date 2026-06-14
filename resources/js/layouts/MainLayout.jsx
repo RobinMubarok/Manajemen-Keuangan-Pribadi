@@ -13,19 +13,19 @@ const PAGE_TITLES = {
 const TYPE_CONFIG = {
     info: {
         Icon: Info,
-        iconClass: 'text-indigo-500 bg-indigo-50 border-indigo-100',
+        iconClass: 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-border)]',
     },
     warning: {
         Icon: AlertTriangle,
-        iconClass: 'text-amber-500 bg-amber-50 border-amber-100',
+        iconClass: 'text-[var(--warning)] bg-[rgba(251,191,36,0.12)] border-[rgba(251,191,36,0.25)]',
     },
     reminder: {
         Icon: Clock,
-        iconClass: 'text-slate-500 bg-slate-50 border-slate-100',
+        iconClass: 'text-[var(--text-muted)] bg-[var(--bg-hover)] border-[var(--border-default)]',
     },
     success: {
         Icon: CheckCircle,
-        iconClass: 'text-indigo-500 bg-indigo-50 border-indigo-100',
+        iconClass: 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-border)]',
     },
 };
 
@@ -79,11 +79,15 @@ export default function MainLayout({
     const pageTitle = PAGE_TITLES[currentPage] || 'Money Manager';
 
     return (
-        <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+        <div
+            className="flex h-screen font-sans overflow-hidden"
+            style={{ backgroundColor: 'var(--bg-primary)' }}
+        >
             {/* ── Overlay mobile ── */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm lg:hidden"
+                    className="fixed inset-0 z-20 backdrop-blur-sm lg:hidden"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
@@ -107,17 +111,35 @@ export default function MainLayout({
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
                 
                 {/* ── Top Unified Navbar ── */}
-                <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 z-10">
+                <header
+                    className="flex items-center justify-between h-16 px-6 flex-shrink-0 z-10"
+                    style={{
+                        backgroundColor: 'var(--bg-base)',
+                        borderBottom: '1px solid var(--border-subtle)',
+                    }}
+                >
                     <div className="flex items-center min-w-0">
                         {/* Hamburger menu button */}
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="p-2 -ml-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all duration-200"
+                            className="p-2 -ml-2 rounded-xl transition-all duration-200"
+                            style={{ color: 'var(--text-muted)' }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                                e.currentTarget.style.color = 'var(--accent)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-muted)';
+                            }}
                             aria-label="Toggle Menu"
                         >
                             <Menu size={20} />
                         </button>
-                        <h2 className="ml-3 font-semibold text-slate-800 text-sm sm:text-base lg:text-lg truncate">
+                        <h2
+                            className="ml-3 font-semibold text-sm sm:text-base lg:text-lg truncate"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
                             {pageTitle}
                         </h2>
                     </div>
@@ -128,17 +150,24 @@ export default function MainLayout({
                         <div className="relative" ref={notifRef}>
                             <button
                                 onClick={() => setNotifOpen(!notifOpen)}
-                                className={[
-                                    'relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200 focus:outline-none',
-                                    notifOpen 
-                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm' 
-                                        : 'bg-white border-slate-100 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 shadow-sm'
-                                ].join(' ')}
+                                className="relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200 focus:outline-none"
+                                style={{
+                                    backgroundColor: notifOpen ? 'var(--accent-muted)' : 'var(--bg-elevated)',
+                                    borderColor: notifOpen ? 'var(--accent-border)' : 'var(--border-default)',
+                                    color: notifOpen ? 'var(--accent)' : 'var(--text-muted)',
+                                }}
                                 aria-label="Notifikasi"
                             >
                                 <Bell size={18} />
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[9px] font-bold ring-2 ring-white animate-pulse">
+                                    <span
+                                        className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold ring-2 animate-pulse"
+                                        style={{
+                                            backgroundColor: 'var(--negative)',
+                                            color: '#fff',
+                                            ringColor: 'var(--bg-base)',
+                                        }}
+                                    >
                                         {unreadCount}
                                     </span>
                                 )}
@@ -146,58 +175,97 @@ export default function MainLayout({
 
                             {/* Dropdown panel */}
                             {notifOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden z-40 transform origin-top-right transition-all">
-                                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border-b border-slate-100">
-                                        <span className="text-xs font-semibold text-slate-700">Notifikasi</span>
+                                <div
+                                    className="absolute right-0 mt-2 w-80 rounded-2xl overflow-hidden z-40 transform origin-top-right transition-all"
+                                    style={{
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        border: '1px solid var(--border-default)',
+                                        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                                    }}
+                                >
+                                    <div
+                                        className="flex items-center justify-between px-4 py-3"
+                                        style={{
+                                            backgroundColor: 'var(--bg-overlay)',
+                                            borderBottom: '1px solid var(--border-default)',
+                                        }}
+                                    >
+                                        <span
+                                            className="text-xs font-semibold"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            Notifikasi
+                                        </span>
                                         {unreadCount > 0 && (
                                             <button 
                                                 onClick={() => {
                                                     onMarkAllRead();
                                                     setNotifOpen(false);
                                                 }}
-                                                className="text-[10px] font-medium text-indigo-600 hover:text-indigo-800 transition-colors focus:outline-none"
+                                                className="text-[10px] font-medium transition-colors focus:outline-none"
+                                                style={{ color: 'var(--accent)' }}
                                             >
                                                 Tandai semua dibaca
                                             </button>
                                         )}
                                     </div>
-                                    <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
+                                    <div
+                                        className="max-h-72 overflow-y-auto"
+                                        style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                                    >
                                         {notifications.length === 0 ? (
-                                            <div className="p-6 text-center text-xs text-slate-400">Tidak ada notifikasi</div>
+                                            <div
+                                                className="p-6 text-center text-xs"
+                                                style={{ color: 'var(--text-muted)' }}
+                                            >
+                                                Tidak ada notifikasi
+                                            </div>
                                         ) : (
                                             notifications.map((notif) => {
                                                 const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.info;
                                                 const IconComp = config.Icon;
-                                                let iconClass = config.iconClass;
-                                                if (notif.type === 'success') {
-                                                    iconClass = notif.read 
-                                                        ? 'text-slate-500 bg-slate-50 border-slate-100'
-                                                        : 'text-indigo-600 bg-indigo-50 border-indigo-100';
-                                                }
                                                 return (
                                                     <div 
                                                         key={notif.id} 
                                                         onClick={() => {
                                                             onMarkRead(notif.id);
-                                                            // Optional: don't close so they can mark multiple
                                                         }}
-                                                        className={[
-                                                            'flex gap-3 p-3.5 hover:bg-slate-50/60 transition-colors cursor-pointer',
-                                                            !notif.read ? 'bg-indigo-50/[0.08]' : ''
-                                                        ].join(' ')}
+                                                        className="flex gap-3 p-3.5 transition-colors cursor-pointer"
+                                                        style={{
+                                                            backgroundColor: !notif.read ? 'var(--accent-muted)' : 'transparent',
+                                                            borderBottom: '1px solid var(--border-subtle)',
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = !notif.read ? 'var(--accent-muted)' : 'transparent'}
                                                     >
-                                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg border flex items-center justify-center ${iconClass}`}>
+                                                        <div
+                                                            className={`flex-shrink-0 w-8 h-8 rounded-lg border flex items-center justify-center ${config.iconClass}`}
+                                                        >
                                                             <IconComp size={14} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className={`text-xs leading-normal ${!notif.read ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>
+                                                            <p
+                                                                className="text-xs leading-normal"
+                                                                style={{
+                                                                    color: !notif.read ? 'var(--text-primary)' : 'var(--text-body)',
+                                                                    fontWeight: !notif.read ? '600' : '400',
+                                                                }}
+                                                            >
                                                                 {notif.message}
                                                             </p>
-                                                            <span className="text-[10px] text-slate-400 mt-1 block">{notif.time}</span>
+                                                            <span
+                                                                className="text-[10px] mt-1 block"
+                                                                style={{ color: 'var(--text-muted)' }}
+                                                            >
+                                                                {notif.time}
+                                                            </span>
                                                         </div>
                                                         {!notif.read && (
                                                             <div className="flex-shrink-0 flex items-center">
-                                                                <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                                                                <span
+                                                                    className="w-2 h-2 rounded-full"
+                                                                    style={{ backgroundColor: 'var(--accent)' }}
+                                                                />
                                                             </div>
                                                         )}
                                                     </div>
@@ -205,13 +273,16 @@ export default function MainLayout({
                                             })
                                         )}
                                     </div>
-                                    <div className="p-2 bg-slate-50/30 border-t border-slate-100 text-center">
+                                    <div className="p-2 text-center">
                                         <button 
                                             onClick={() => {
                                                 onNavigate('notifikasi');
                                                 setNotifOpen(false);
                                             }}
-                                            className="w-full py-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/40 rounded-xl transition-all focus:outline-none"
+                                            className="w-full py-2 text-xs font-semibold rounded-xl transition-all focus:outline-none"
+                                            style={{ color: 'var(--accent)' }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-muted)'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                                         >
                                             Lihat Semua Notifikasi
                                         </button>
@@ -223,7 +294,10 @@ export default function MainLayout({
                 </header>
 
                 {/* Slot halaman */}
-                <main className="flex-1 overflow-y-auto">
+                <main
+                    className="flex-1 overflow-y-auto"
+                    style={{ backgroundColor: 'var(--bg-primary)' }}
+                >
                     {children}
                 </main>
             </div>

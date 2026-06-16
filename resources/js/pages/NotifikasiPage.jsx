@@ -24,23 +24,23 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
 
         switch (type) {
             case 'warning':
-                bgColor = '#FEF3C7';
-                strokeColor = '#F59E0B';
+                bgColor = 'rgba(251, 191, 36, 0.12)';
+                strokeColor = 'var(--warning)';
                 IconComponent = AlertTriangle;
                 break;
             case 'reminder':
-                bgColor = '#EEF2FF';
-                strokeColor = '#4F46E5';
+                bgColor = 'var(--accent-muted)';
+                strokeColor = 'var(--accent)';
                 IconComponent = Clock;
                 break;
             case 'success':
-                bgColor = '#F0FDF4';
-                strokeColor = '#16A34A';
+                bgColor = 'rgba(74, 222, 128, 0.12)';
+                strokeColor = 'var(--positive)';
                 IconComponent = CheckCircle;
                 break;
             default:
-                bgColor = '#EEF2FF';
-                strokeColor = '#4F46E5';
+                bgColor = 'var(--accent-muted)';
+                strokeColor = 'var(--accent)';
                 IconComponent = Bell;
                 break;
         }
@@ -64,8 +64,8 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
         <div style={{ width: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* ── HEADER Halaman ── */}
             <header>
-                <h1 className="text-2xl font-bold text-slate-800">Notifikasi</h1>
-                <p className="text-sm text-slate-500 mt-1">
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Notifikasi</h1>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
                     {unreadCount > 0 ? `${unreadCount} notifikasi belum dibaca` : 'Semua notifikasi telah dibaca'}
                 </p>
             </header>
@@ -73,7 +73,7 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
             {/* ── SEKSI: BELUM DIBACA ── */}
             {unreadNotifications.length > 0 && (
                 <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <h2 className="text-sm font-semibold text-slate-800">Belum Dibaca</h2>
+                    <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Belum Dibaca</h2>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}> {/* Gap antar card: 10px */}
                         {unreadNotifications.map((notif) => (
                             <div
@@ -81,23 +81,23 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                                 onClick={() => onMarkRead(notif.id)}
                                 className="flex items-center gap-4 transition-all duration-200 cursor-pointer group"
                                 style={{
-                                    border: '1px solid #6366F1',
-                                    backgroundColor: '#FFFFFF',
+                                    border: '1px solid var(--accent)',
+                                    backgroundColor: 'var(--bg-elevated)',
                                     padding: '16px',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)'
+                                    borderRadius: 'var(--r-md)',
+                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.15)'
                                 }}
                                 title="Klik untuk tandai sudah dibaca"
                             >
                                 {renderIconContainer(notif.type)}
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-slate-800 text-sm sm:text-base leading-snug group-hover:text-indigo-600 transition-colors">
+                                    <p className="font-semibold text-sm sm:text-base leading-snug group-hover:text-[var(--accent)] transition-colors" style={{ color: 'var(--text-primary)' }}>
                                         {notif.message}
                                     </p>
-                                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                                    <div className="flex items-center gap-2 mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                                         <span>{notif.time}</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                        <span className="font-medium text-indigo-600 bg-indigo-50/60 px-2 py-0.5 rounded-md">Baru</span>
+                                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--border-strong)' }} />
+                                        <span className="font-medium px-2 py-0.5" style={{ color: 'var(--text-on-accent)', backgroundColor: 'var(--accent)', borderRadius: 'var(--r-sm)' }}>Baru</span>
                                     </div>
                                 </div>
                             </div>
@@ -108,14 +108,16 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
 
             {/* ── SEKSI: SUDAH DIBACA ── */}
             <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <h2 className="text-sm font-semibold text-slate-800">Sudah Dibaca</h2>
+                <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Sudah Dibaca</h2>
                 {readNotifications.length === 0 ? (
                     <div 
-                        className="p-6 text-center text-sm text-slate-400 bg-white"
+                        className="p-6 text-center text-sm"
                         style={{
-                            border: '1px solid #F1F5F9',
-                            borderRadius: '12px',
-                            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
+                            color: 'var(--text-muted)',
+                            backgroundColor: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-default)',
+                            borderRadius: 'var(--r-md)',
+                            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
                         }}
                     >
                         Belum ada notifikasi yang dibaca
@@ -127,19 +129,19 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                                 key={notif.id}
                                 className="flex items-center gap-4 transition-all duration-200"
                                 style={{
-                                    border: '1px solid #F1F5F9',
-                                    backgroundColor: '#FFFFFF',
+                                    border: '1px solid var(--border-default)',
+                                    backgroundColor: 'var(--bg-elevated)',
                                     padding: '16px',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
+                                    borderRadius: 'var(--r-md)',
+                                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
                                 }}
                             >
                                 {renderIconContainer(notif.type)}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-slate-600 text-sm sm:text-base leading-snug">
+                                    <p className="text-sm sm:text-base leading-snug" style={{ color: 'var(--text-body)' }}>
                                         {notif.message}
                                     </p>
-                                    <span className="text-xs text-slate-400 mt-1 block">{notif.time}</span>
+                                    <span className="text-xs mt-1 block" style={{ color: 'var(--text-muted)' }}>{notif.time}</span>
                                 </div>
                             </div>
                         ))}
@@ -150,10 +152,10 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
             {/* ── INFO BOX: TENTANG NOTIFIKASI ── */}
             <section>
                 <div 
-                    className="bg-slate-100/60"
                     style={{
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '12px',
+                        backgroundColor: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: 'var(--r-md)',
                         padding: '20px',
                         display: 'flex',
                         flexDirection: 'column',
@@ -161,26 +163,26 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                     }}
                 >
                     <div className="flex items-center gap-2.5">
-                        <Bell size={20} color="#4F46E5" className="stroke-[1.5]" />
-                        <h3 className="font-bold text-slate-800 text-sm sm:text-base">Tentang Notifikasi</h3>
+                        <Bell size={20} color="var(--accent)" className="stroke-[1.5]" />
+                        <h3 className="font-bold text-sm sm:text-base" style={{ color: 'var(--text-primary)' }}>Tentang Notifikasi</h3>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <div className="flex items-center gap-3">
                             {renderIconContainer('warning')}
-                            <p className="text-xs sm:text-sm text-slate-600 leading-normal">
-                                <strong className="text-slate-700">Budget Hampir Habis:</strong> Dikirim saat budget mencapai 80%
+                            <p className="text-xs sm:text-sm leading-normal" style={{ color: 'var(--text-body)' }}>
+                                <strong style={{ color: 'var(--text-primary)' }}>Budget Hampir Habis:</strong> Dikirim saat budget mencapai 80%
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
                             {renderIconContainer('reminder')}
-                            <p className="text-xs sm:text-sm text-slate-600 leading-normal">
-                                <strong className="text-slate-700">Pengingat Harian:</strong> Setiap hari pukul 20.00 untuk mengingatkan mencatat pengeluaran
+                            <p className="text-xs sm:text-sm leading-normal" style={{ color: 'var(--text-body)' }}>
+                                <strong style={{ color: 'var(--text-primary)' }}>Pengingat Harian:</strong> Setiap hari pukul 20.00 untuk mengingatkan mencatat pengeluaran
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
                             {renderIconContainer('success')}
-                            <p className="text-xs sm:text-sm text-slate-600 leading-normal">
-                                <strong className="text-slate-700">Konfirmasi:</strong> Setiap kali transaksi berhasil disimpan
+                            <p className="text-xs sm:text-sm leading-normal" style={{ color: 'var(--text-body)' }}>
+                                <strong style={{ color: 'var(--text-primary)' }}>Konfirmasi:</strong> Setiap kali transaksi berhasil disimpan
                             </p>
                         </div>
                     </div>

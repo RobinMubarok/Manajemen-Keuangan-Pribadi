@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ArrowLeft, X } from 'lucide-react';
 
 /**
  * Kategori yang tersedia berdasarkan tipe transaksi.
@@ -160,290 +160,270 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
     };
 
     return (
-        <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 pb-20">
-            {/* Back button + Title */}
-            <div className="flex items-center gap-4">
-                <button
-                    type="button"
-                    onClick={() => onNavigate('transaksi')}
-                    className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
-                    style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-default)',
-                        color: 'var(--text-muted)',
-                    }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'var(--accent-border)';
-                        e.currentTarget.style.color = 'var(--accent)';
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = 'var(--border-default)';
-                        e.currentTarget.style.color = 'var(--text-muted)';
-                    }}
-                    title="Kembali ke transaksi"
+        <div className="p-4 max-w-[500px] mx-auto pb-20">
+            <div 
+                className="rounded-2xl shadow-xl flex flex-col animate-[modalIn_0.25s_ease-out]"
+                style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)'
+                }}
+            >
+                {/* Header Card */}
+                <div 
+                    className="flex items-center justify-between px-5 pt-5 pb-4"
+                    style={{ borderBottom: '1px solid var(--border-subtle)' }}
                 >
-                    <ArrowLeft size={18} />
-                </button>
-                <h1
-                    className="text-3xl font-bold font-serif"
-                    style={{ color: 'var(--text-primary)' }}
-                >
-                    {isEditMode ? 'Edit Transaksi' : 'Tambah Transaksi'}
-                </h1>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Tipe Transaksi */}
-                <div className="space-y-3">
-                    <label
-                        className="block font-bold font-serif text-lg"
+                    <h1
+                        className="text-xl font-bold font-serif"
                         style={{ color: 'var(--text-primary)' }}
                     >
-                        Tipe Transaksi
-                    </label>
-                    <div className="grid grid-cols-2 gap-6 max-w-lg">
-                        <button
-                            type="button"
-                            onClick={() => handleTipeChange('Pemasukan')}
-                            className="py-3.5 px-4 rounded-md font-bold font-serif text-center transition-all"
-                            style={
-                                tipe === 'Pemasukan'
-                                    ? {
-                                          backgroundColor: 'var(--accent)',
-                                          color: 'var(--text-on-accent)',
-                                          border: 'none',
-                                      }
-                                    : {
-                                          backgroundColor: 'var(--bg-elevated)',
-                                          color: 'var(--text-muted)',
-                                          border: '1px solid var(--border-default)',
-                                      }
-                            }
-                        >
-                            Pemasukan
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleTipeChange('Pengeluaran')}
-                            className="py-3.5 px-4 rounded-md font-bold font-serif text-center transition-all"
-                            style={
-                                tipe === 'Pengeluaran'
-                                    ? {
-                                          backgroundColor: 'var(--negative)',
-                                          color: '#fff',
-                                          border: 'none',
-                                      }
-                                    : {
-                                          backgroundColor: 'var(--bg-elevated)',
-                                          color: 'var(--text-muted)',
-                                          border: '1px solid var(--border-default)',
-                                      }
-                            }
-                        >
-                            Pengeluaran
-                        </button>
-                    </div>
-                </div>
-
-                {/* Jumlah */}
-                <div className="space-y-3 max-w-3xl">
-                    <label
-                        className="block font-bold font-serif text-lg"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        Jumlah
-                    </label>
-                    <div className="relative">
-                        <span
-                            className="absolute left-4 top-1/2 -translate-y-1/2 font-medium"
-                            style={{ color: 'var(--text-muted)' }}
-                        >
-                            Rp
-                        </span>
-                        <input 
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="0"
-                            value={formatAmount(jumlah)}
-                            onChange={(e) => handleAmountChange(e.target.value.replace(/\./g, ''))}
-                            className="w-full pl-12 pr-4 py-4 rounded-md font-medium transition-colors focus:outline-none"
-                            style={{
-                                backgroundColor: 'var(--bg-input)',
-                                border: errors.jumlah
-                                    ? '2px solid var(--negative)'
-                                    : '2px solid var(--border-default)',
-                                color: 'var(--text-primary)',
-                                borderRadius: 'var(--r-md)',
-                            }}
-                            onFocus={e => !errors.jumlah && (e.target.style.borderColor = 'var(--border-strong)')}
-                            onBlur={e => !errors.jumlah && (e.target.style.borderColor = 'var(--border-default)')}
-                        />
-                    </div>
-                    {errors.jumlah && (
-                        <p
-                            className="text-sm font-medium"
-                            style={{ color: 'var(--negative)' }}
-                        >
-                            {errors.jumlah}
-                        </p>
-                    )}
-                </div>
-
-                {/* Kategori */}
-                <div className="space-y-3 max-w-3xl">
-                    <label
-                        className="block font-bold font-serif text-lg"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        Kategori
-                    </label>
-                    <div className="relative">
-                        <select 
-                            value={kategori}
-                            onChange={(e) => {
-                                setKategori(e.target.value);
-                                setErrors((prev) => ({ ...prev, kategori: '' }));
-                            }}
-                            className="w-full appearance-none rounded-md px-4 py-4 pr-12 font-medium focus:outline-none cursor-pointer transition-colors"
-                            style={{
-                                backgroundColor: 'var(--bg-input)',
-                                border: errors.kategori
-                                    ? '2px solid var(--negative)'
-                                    : '2px solid var(--border-default)',
-                                color: 'var(--text-primary)',
-                                borderRadius: 'var(--r-md)',
-                            }}
-                        >
-                            {CATEGORIES[tipe].map((cat) => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                        <ChevronDown
-                            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                            size={24}
-                            style={{ color: 'var(--text-muted)' }}
-                        />
-                    </div>
-                    {errors.kategori && (
-                        <p
-                            className="text-sm font-medium"
-                            style={{ color: 'var(--negative)' }}
-                        >
-                            {errors.kategori}
-                        </p>
-                    )}
-                </div>
-
-                {/* Tanggal */}
-                <div className="space-y-3 max-w-3xl">
-                    <label
-                        className="block font-bold font-serif text-lg"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        Tanggal
-                    </label>
-                    <input 
-                        type="date" 
-                        value={tanggal}
-                        onChange={(e) => {
-                            setTanggal(e.target.value);
-                            setErrors((prev) => ({ ...prev, tanggal: '' }));
-                        }}
-                        className="w-full px-4 py-4 rounded-md font-medium transition-colors focus:outline-none"
-                        style={{
-                            backgroundColor: 'var(--bg-input)',
-                            border: errors.tanggal
-                                ? '2px solid var(--negative)'
-                                : '2px solid var(--border-default)',
-                            color: 'var(--text-primary)',
-                            borderRadius: 'var(--r-md)',
-                        }}
-                        onFocus={e => !errors.tanggal && (e.target.style.borderColor = 'var(--border-strong)')}
-                        onBlur={e => !errors.tanggal && (e.target.style.borderColor = 'var(--border-default)')}
-                    />
-                    {errors.tanggal && (
-                        <p
-                            className="text-sm font-medium"
-                            style={{ color: 'var(--negative)' }}
-                        >
-                            {errors.tanggal}
-                        </p>
-                    )}
-                </div>
-
-                {/* Deskripsi */}
-                <div className="space-y-3 max-w-3xl">
-                    <label
-                        className="block font-bold font-serif text-lg"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        Deskripsi
-                    </label>
-                    <textarea 
-                        rows={4}
-                        placeholder="Catatan tambahan..."
-                        value={deskripsi}
-                        onChange={(e) => {
-                            setDeskripsi(e.target.value);
-                            if (e.target.value.trim()) {
-                                setErrors((prev) => ({ ...prev, deskripsi: '' }));
-                            }
-                        }}
-                        className="w-full px-4 py-4 rounded-md font-medium resize-none transition-colors focus:outline-none"
-                        style={{
-                            backgroundColor: 'var(--bg-input)',
-                            border: errors.deskripsi
-                                ? '2px solid var(--negative)'
-                                : '2px solid var(--border-default)',
-                            color: 'var(--text-primary)',
-                            borderRadius: 'var(--r-md)',
-                        }}
-                        placeholder-style={{ color: 'var(--text-muted)' }}
-                        onFocus={e => !errors.deskripsi && (e.target.style.borderColor = 'var(--border-strong)')}
-                        onBlur={e => !errors.deskripsi && (e.target.style.borderColor = 'var(--border-default)')}
-                    />
-                    {errors.deskripsi && (
-                        <p
-                            className="text-sm font-medium"
-                            style={{ color: 'var(--negative)' }}
-                        >
-                            {errors.deskripsi}
-                        </p>
-                    )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="pt-8 max-w-3xl flex gap-4">
+                        {isEditMode ? 'Edit Transaksi' : 'Tambah Transaksi'}
+                    </h1>
                     <button
-                        type="button"
                         onClick={() => onNavigate('transaksi')}
-                        className="flex-1 py-4 rounded-md font-bold font-serif text-lg transition-colors"
-                        style={{
-                            backgroundColor: 'var(--bg-elevated)',
-                            color: 'var(--text-body)',
-                            border: '1px solid var(--border-default)',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'}
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded-lg hover:bg-[var(--bg-hover)]"
+                        title="Tutup"
                     >
-                        Batal
-                    </button>
-                    <button 
-                        type="submit"
-                        className="flex-[2] py-4 rounded-md font-bold font-serif text-lg transition-all"
-                        style={{
-                            backgroundColor: 'var(--accent)',
-                            color: 'var(--text-on-accent)',
-                            border: 'none',
-                            borderRadius: 'var(--r-pill)',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
-                    >
-                        {isEditMode ? 'Simpan Perubahan' : 'Simpan Transaksi'}
+                        <X size={20} />
                     </button>
                 </div>
-            </form>
+
+                {/* Body Form */}
+                <div className="p-5">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Tipe Transaksi */}
+                        <div className="space-y-2">
+                            <label
+                                className="block font-semibold text-sm"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Tipe Transaksi
+                            </label>
+                            <div className="grid grid-cols-2 gap-0 p-1 rounded-full" style={{ backgroundColor: 'var(--bg-input)', border: '1px solid var(--border-default)' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTipeChange('Pemasukan')}
+                                    className={`py-2 px-4 rounded-full text-sm font-bold transition-all duration-200 ${
+                                        tipe === 'Pemasukan'
+                                            ? 'bg-[var(--accent)] text-[var(--text-on-accent)] shadow-md'
+                                            : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                                    }`}
+                                >
+                                    Pemasukan
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTipeChange('Pengeluaran')}
+                                    className={`py-2 px-4 rounded-full text-sm font-bold transition-all duration-200 ${
+                                        tipe === 'Pengeluaran'
+                                            ? 'bg-[var(--negative)] text-[#fff] shadow-md'
+                                            : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                                    }`}
+                                >
+                                    Pengeluaran
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Jumlah */}
+                        <div className="space-y-2">
+                            <label
+                                className="block font-semibold text-sm"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Jumlah
+                            </label>
+                            <div className="relative">
+                                <span
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm"
+                                    style={{ color: 'var(--text-muted)' }}
+                                >
+                                    Rp
+                                </span>
+                                <input 
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder="0"
+                                    value={formatAmount(jumlah)}
+                                    onChange={(e) => handleAmountChange(e.target.value.replace(/\./g, ''))}
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-lg font-bold transition-colors focus:outline-none text-xl"
+                                    style={{
+                                        backgroundColor: 'var(--bg-input)',
+                                        border: errors.jumlah
+                                            ? '2px solid var(--negative)'
+                                            : '2px solid var(--border-default)',
+                                        color: 'var(--text-primary)',
+                                    }}
+                                    onFocus={e => !errors.jumlah && (e.target.style.borderColor = 'var(--accent)')}
+                                    onBlur={e => !errors.jumlah && (e.target.style.borderColor = 'var(--border-default)')}
+                                />
+                            </div>
+                            {errors.jumlah && (
+                                <p
+                                    className="text-xs font-medium"
+                                    style={{ color: 'var(--negative)' }}
+                                >
+                                    {errors.jumlah}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Kategori */}
+                        <div className="space-y-2">
+                            <label
+                                className="block font-semibold text-sm"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Kategori
+                            </label>
+                            <div className="relative">
+                                <select 
+                                    value={kategori}
+                                    onChange={(e) => {
+                                        setKategori(e.target.value);
+                                        setErrors((prev) => ({ ...prev, kategori: '' }));
+                                    }}
+                                    className="w-full appearance-none rounded-lg px-4 py-2.5 pr-10 font-medium focus:outline-none cursor-pointer transition-colors text-sm"
+                                    style={{
+                                        backgroundColor: 'var(--bg-input)',
+                                        border: errors.kategori
+                                            ? '2px solid var(--negative)'
+                                            : '2px solid var(--border-default)',
+                                        color: 'var(--text-primary)',
+                                    }}
+                                    onFocus={e => !errors.kategori && (e.target.style.borderColor = 'var(--accent)')}
+                                    onBlur={e => !errors.kategori && (e.target.style.borderColor = 'var(--border-default)')}
+                                >
+                                    {CATEGORIES[tipe].map((cat) => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                                    size={18}
+                                    style={{ color: 'var(--text-muted)' }}
+                                />
+                            </div>
+                            {errors.kategori && (
+                                <p
+                                    className="text-xs font-medium"
+                                    style={{ color: 'var(--negative)' }}
+                                >
+                                    {errors.kategori}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Tanggal */}
+                        <div className="space-y-2">
+                            <label
+                                className="block font-semibold text-sm"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Tanggal
+                            </label>
+                            <input 
+                                type="date" 
+                                value={tanggal}
+                                onChange={(e) => {
+                                    setTanggal(e.target.value);
+                                    setErrors((prev) => ({ ...prev, tanggal: '' }));
+                                }}
+                                className="w-full px-4 py-2.5 rounded-lg font-medium transition-colors focus:outline-none text-sm"
+                                style={{
+                                    backgroundColor: 'var(--bg-input)',
+                                    border: errors.tanggal
+                                        ? '2px solid var(--negative)'
+                                        : '2px solid var(--border-default)',
+                                    color: 'var(--text-primary)',
+                                }}
+                                onFocus={e => !errors.tanggal && (e.target.style.borderColor = 'var(--accent)')}
+                                onBlur={e => !errors.tanggal && (e.target.style.borderColor = 'var(--border-default)')}
+                            />
+                            {errors.tanggal && (
+                                <p
+                                    className="text-xs font-medium"
+                                    style={{ color: 'var(--negative)' }}
+                                >
+                                    {errors.tanggal}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Deskripsi */}
+                        <div className="space-y-2">
+                            <label
+                                className="block font-semibold text-sm"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Deskripsi
+                            </label>
+                            <textarea 
+                                rows={3}
+                                placeholder="Catatan tambahan..."
+                                value={deskripsi}
+                                onChange={(e) => {
+                                    setDeskripsi(e.target.value);
+                                    if (e.target.value.trim()) {
+                                        setErrors((prev) => ({ ...prev, deskripsi: '' }));
+                                    }
+                                }}
+                                className="w-full px-4 py-2.5 rounded-lg font-medium resize-none transition-colors focus:outline-none text-sm"
+                                style={{
+                                    backgroundColor: 'var(--bg-input)',
+                                    border: errors.deskripsi
+                                        ? '2px solid var(--negative)'
+                                        : '2px solid var(--border-default)',
+                                    color: 'var(--text-primary)',
+                                }}
+                                onFocus={e => !errors.deskripsi && (e.target.style.borderColor = 'var(--accent)')}
+                                onBlur={e => !errors.deskripsi && (e.target.style.borderColor = 'var(--border-default)')}
+                            />
+                            {errors.deskripsi && (
+                                <p
+                                    className="text-xs font-medium"
+                                    style={{ color: 'var(--negative)' }}
+                                >
+                                    {errors.deskripsi}
+                                </p>
+                            )}
+                        </div>
+
+                        <hr style={{ borderColor: 'var(--border-default)', marginTop: '24px', marginBottom: '8px' }} />
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => onNavigate('transaksi')}
+                                className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--bg-input)',
+                                    color: 'var(--text-body)',
+                                    border: '1px solid var(--border-default)',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--bg-input)'}
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                type="submit"
+                                className="flex-[2] py-2.5 rounded-lg font-bold text-sm transition-all"
+                                style={{
+                                    backgroundColor: 'var(--accent)',
+                                    color: 'var(--text-on-accent)',
+                                    border: 'none',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
+                            >
+                                {isEditMode ? 'Simpan Perubahan' : 'Simpan Transaksi'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 }

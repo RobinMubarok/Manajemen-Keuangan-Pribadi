@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronDown, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 const MONTHS = [
     { value: '01', name: 'Januari' },
@@ -91,15 +92,26 @@ export default function LaporanPage() {
         document.body.removeChild(link);
     };
 
-    // Ekspor ke PDF (Print Halaman secara optimal)
-    const exportPDF = () => {
-        window.print();
-    };
-
     const currentMonthName = MONTHS.find(m => m.value === selectedMonth)?.name || 'Mei';
 
+    // Ekspor ke PDF secara langsung tanpa dialog
+    const exportPDF = () => {
+        const element = document.getElementById('laporan-content');
+        if (!element) return;
+
+        const opt = {
+            margin:       0.5,
+            filename:     `Laporan_Keuangan_${currentMonthName}_${selectedYear}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    };
+
     return (
-        <div className="p-6 lg:p-8 space-y-6 max-w-6xl mx-auto print:p-0 print:max-w-full">
+        <div id="laporan-content" className="p-6 lg:p-8 space-y-6 max-w-6xl mx-auto print:p-0 print:max-w-full">
             {/* ── 1. HEADER ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:mb-6">
                 <div>
@@ -116,7 +128,7 @@ export default function LaporanPage() {
                         Analisis lengkap transaksi bulanan
                     </p>
                 </div>
-                <div className="flex items-center gap-3 print:hidden">
+                <div id="action-buttons" className="flex items-center gap-3 print:hidden" data-html2canvas-ignore="true">
                     <button 
                         onClick={exportPDF}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all"
@@ -152,7 +164,9 @@ export default function LaporanPage() {
 
             {/* ── 2. DATE SELECTOR BAR ── */}
             <div
+                id="filter-bar"
                 className="p-4 rounded-2xl flex items-center gap-3 print:hidden"
+                data-html2canvas-ignore="true"
                 style={{
                     backgroundColor: 'var(--bg-elevated)',
                     border: '1px solid var(--border-default)',

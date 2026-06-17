@@ -7,6 +7,7 @@ import TransaksiPage from './pages/TransaksiPage';
 import TambahTransaksiPage from './pages/TambahTransaksiPage';
 import AturBudgetPage from './pages/AturBudgetPage';
 import LaporanPage from './pages/LaporanPage';
+import AuthPage from './pages/AuthPage';
 
 // Initial dummy notifications
 const INITIAL_NOTIFICATIONS = [
@@ -41,7 +42,7 @@ const INITIAL_TRANSACTIONS = [
  * (e.g. useEffect + fetch) and update the handlers to call the API.
  */
 export default function App() {
-    const [currentPage, setCurrentPage] = useState('dashboard');
+    const [currentPage, setCurrentPage] = useState('auth');
     const [notifications, setNotifications] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -225,6 +226,8 @@ export default function App() {
                         onMarkRead={handleMarkRead} 
                     />
                 );
+            case 'auth':
+                return <AuthPage onLogin={setCurrentPage} />;
             default:
                 return (
                     <DashboardPage 
@@ -234,6 +237,10 @@ export default function App() {
                 );
         }
     };
+
+    if (currentPage === 'auth') {
+        return <AuthPage onLogin={setCurrentPage} />;
+    }
 
     return (
         <MainLayout 

@@ -51,7 +51,8 @@ export default function MainLayout({
     notifications = [], 
     onMarkAllRead, 
     onMarkRead,
-    userProfile
+    userProfile,
+    onLogout
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [notifOpen, setNotifOpen] = useState(false);
@@ -108,6 +109,7 @@ export default function MainLayout({
                 onClose={() => setSidebarOpen(false)}
                 unreadCount={unreadCount}
                 userProfile={userProfile}
+                onLogout={onLogout}
             />
 
             {/* ── Area konten utama ── */}

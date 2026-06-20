@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, ArrowLeft, X } from 'lucide-react';
 
 /**
- * Kategori yang tersedia berdasarkan tipe transaksi.
+ * Kategori default sebagai fallback jika props categories belum dimuat.
  *
  * @type {Object<string, string[]>}
  */
-const CATEGORIES = {
+const DEFAULT_CATEGORIES = {
     Pemasukan: ['Gaji', 'Beasiswa', 'Bonus', 'Hasil Usaha', 'Investasi', 'Lainnya'],
     Pengeluaran: ['Makanan', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan', 'Kesehatan', 'Lainnya'],
 };
@@ -41,13 +41,30 @@ function inputDateToDisplay(dateStr) {
  *   - Jika editData ada → mode Edit
  *   - Jika tidak → mode Tambah
  *
- * @param {Function} onNavigate - Callback untuk navigasi halaman
- * @param {Function} onAdd      - Callback tambah transaksi baru (mode create)
- * @param {Function} onEdit     - Callback update transaksi (mode edit)
- * @param {Object}   editData   - Data transaksi yang akan di-edit (null = mode tambah)
+ * @param {Function} onNavigate  - Callback untuk navigasi halaman
+ * @param {Function} onAdd       - Callback tambah transaksi baru (mode create)
+ * @param {Function} onEdit      - Callback update transaksi (mode edit)
+ * @param {Object}   editData    - Data transaksi yang akan di-edit (null = mode tambah)
+ * @param {Array}    categories  - Daftar kategori dari database (dari App.jsx)
  */
-export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editData }) {
+export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editData, categories = [] }) {
     const isEditMode = Boolean(editData);
+
+    /**
+     * Bangun map kategori dari props (dari DB), dengan fallback ke default.
+     * Format: { Pemasukan: ['Gaji', ...], Pengeluaran: ['Makanan', ...] }
+     */
+    const categoryMap = React.useMemo(() => {
+        if (!categories || categories.length === 0) {
+            return DEFAULT_CATEGORIES;
+        }
+        return categories.reduce((acc, cat) => {
+            const type = cat.type === 'Pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+            if (!acc[type]) { acc[type] = []; }
+            if (!acc[type].includes(cat.name)) { acc[type].push(cat.name); }
+            return acc;
+        }, { Pemasukan: [], Pengeluaran: [] });
+    }, [categories]);
 
     const [tipe, setTipe] = useState('Pemasukan');
     const [jumlah, setJumlah] = useState('');
@@ -73,14 +90,15 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
     // Reset kategori saat tipe berubah (hanya di mode tambah)
     useEffect(() => {
         if (!isEditMode) {
-            setKategori(CATEGORIES[tipe][0]);
+            const firstOption = categoryMap[tipe]?.[0] || '';
+            setKategori(firstOption);
         }
-    }, [tipe, isEditMode]);
+    }, [tipe, isEditMode, categoryMap]);
 
     const handleTipeChange = (newTipe) => {
         setTipe(newTipe);
         // Reset kategori ke opsi pertama dari tipe baru
-        setKategori(CATEGORIES[newTipe][0]);
+        setKategori(categoryMap[newTipe]?.[0] || '');
         // Clear errors
         setErrors((prev) => ({ ...prev, tipe: '' }));
     };
@@ -294,7 +312,7 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                                     onFocus={e => !errors.kategori && (e.target.style.borderColor = 'var(--accent)')}
                                     onBlur={e => !errors.kategori && (e.target.style.borderColor = 'var(--border-default)')}
                                 >
-                                    {CATEGORIES[tipe].map((cat) => (
+                                    {(categoryMap[tipe] || []).map((cat) => (
                                         <option key={cat} value={cat}>{cat}</option>
                                     ))}
                                 </select>

@@ -53,7 +53,7 @@ const MANAGE_ITEMS = [
  * @param {boolean}  isOpen       - Apakah sidebar terbuka (mobile)
  * @param {Function} onClose      - Callback tutup sidebar (mobile)
  */
-export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unreadCount = 0, userProfile }) {
+export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unreadCount = 0, userProfile, onLogout }) {
     const [isLogoutOpen, setIsLogoutOpen] = useState(false);
     // const navigate = useNavigate(); // React Router not installed; using window.location for redirect
 
@@ -64,8 +64,11 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                 onClose={() => setIsLogoutOpen(false)} 
                 onConfirm={() => {
                     setIsLogoutOpen(false);
-                    // Clear authentication state if needed, e.g., localStorage.removeItem('authToken');
-                    onNavigate('auth');
+                    if (onLogout) {
+                        onLogout();
+                    } else {
+                        onNavigate('auth');
+                    }
                 }} 
             />
             <aside

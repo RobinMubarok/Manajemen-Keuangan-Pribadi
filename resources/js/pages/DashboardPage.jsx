@@ -1,43 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SummaryCard from '../components/SummaryCard';
 import BudgetProgress from '../components/BudgetProgress';
 import SpendingDonutChart from '../components/SpendingDonutChart';
 import TransactionList from '../components/TransactionList';
 import NotificationList from '../components/NotificationList';
 
-/* ─────────────────────────── DATA STATIS ─────────────────────────── */
-/* Ganti dengan API call / props dari parent saat backend sudah siap   */
-
-const SPENDING_DATA = [
-    { name: 'Jajan',          value: 36 },
-    { name: 'Makan',          value: 31 },
-    { name: 'Kebutuhan Kost', value: 16 },
-    { name: 'Kesehatan',      value: 11 },
-    { name: 'Transportasi',   value: 5  },
-];
-
-const TRANSACTIONS = [
-    { id: 1, name: 'Gacoan',       amount: -30000, date: 'Hari ini, 12:30',  category: 'Makan' },
-    { id: 2, name: 'Isi Bensin',   amount: -20000, date: 'Hari ini, 09:15',  category: 'Transportasi' },
-    { id: 3, name: 'Beli Vitamin', amount: -40000, date: 'Kemarin, 18:00',   category: 'Kesehatan' },
-];
-
-/* ─────────────────────────── KOMPONEN ──────────────────────────────── */
+/**
+ * Helper: format angka ke format Rupiah (e.g. 17600000 → "Rp 17.600.000")
+ *
+ * @param {number} amount
+ * @returns {string}
+ */
+function formatRupiah(amount) {
+    return 'Rp ' + Math.abs(amount).toLocaleString('id-ID');
+}
 
 /**
  * DashboardPage
  *
- * Halaman utama aplikasi. Komponen ini hanya bertanggung jawab
- * merangkai section-section Dashboard — logika & data sepenuhnya
- * terpisah sehingga mudah diganti dengan API nyata.
- *
- * Anggota tim TIDAK perlu mengubah MainLayout atau Sidebar
- * untuk menambah halaman baru.
+ * Halaman utama aplikasi. Fetch data ringkasan dari /api/dashboard
+ * sehingga semua angka mencerminkan data user yang sesungguhnya.
  *
  * @param {Array}    notifications - Notifikasi aktif dari App.jsx
  * @param {Function} onMarkRead    - Callback untuk menandai dibaca
  */
 export default function DashboardPage({ notifications, onMarkRead }) {
+    const [dashboardData, setDashboardData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const token = localStorage.getItem('auth_token');
+        fetch('/api/dashboard', {
+            headers: {
+                Accept: 'application/json',
+                Authorization: token ? `Bearer ${token}` : '',
+            },
+        })
+            .then((res) => {
+                if (!res.ok) { throw new Error('Failed to load dashboard'); }
+                return res.json();
+            })
+            .then((data) => setDashboardData(data))
+            .catch((err) => console.error('Error fetching dashboard:', err))
+            .finally(() => setIsLoading(false));
+    }, []);
+
+    // Compute donut total label from spending data
+    const donutTotal = dashboardData?.spendingData?.length
+        ? formatRupiah(dashboardData.expense)
+        : 'Rp 0';
+
     return (
         <div className="p-5 lg:p-7 max-w-6xl mx-auto space-y-5">
 
@@ -54,7 +66,10 @@ export default function DashboardPage({ notifications, onMarkRead }) {
                         className="text-sm mt-0.5"
                         style={{ color: 'var(--text-muted)' }}
                     >
-                        Selamat datang! Berikut ringkasan keuangan Anda
+                        {dashboardData
+                            ? `Ringkasan keuangan bulan ${dashboardData.monthLabel}`
+                            : 'Memuat data keuangan Anda...'
+                        }
                     </p>
                 </div>
             </header>
@@ -64,29 +79,37 @@ export default function DashboardPage({ notifications, onMarkRead }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <SummaryCard
                         title="Pemasukan"
-                        amount="Rp 17.600.000"
+                        amount={isLoading ? '...' : formatRupiah(dashboardData?.income ?? 0)}
                         type="income"
-                        subtitle="Bulan Mei 2026"
+                        subtitle={dashboardData ? `Bulan ${dashboardData.monthLabel}` : ''}
                     />
                     <SummaryCard
                         title="Pengeluaran"
-                        amount="Rp 5.800.000"
+                        amount={isLoading ? '...' : formatRupiah(dashboardData?.expense ?? 0)}
                         type="expense"
-                        subtitle="Bulan Mei 2026"
+                        subtitle={dashboardData ? `Bulan ${dashboardData.monthLabel}` : ''}
                     />
                 </div>
             </section>
 
             {/* ── 3. BUDGET HARIAN ── */}
             <section>
-                <BudgetProgress used={30000} total={75000} />
+                <BudgetProgress
+                    used={dashboardData?.dailyBudgetUsed ?? 0}
+                    total={dashboardData?.dailyBudgetTotal ?? 0}
+                />
             </section>
 
             {/* ── 4. ANALISIS + TRANSAKSI TERBARU ── */}
             <section>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <SpendingDonutChart data={SPENDING_DATA} total="Rp 5,8jt" />
-                    <TransactionList transactions={TRANSACTIONS} />
+                    <SpendingDonutChart
+                        data={dashboardData?.spendingData ?? []}
+                        total={donutTotal}
+                    />
+                    <TransactionList
+                        transactions={dashboardData?.recentTransactions ?? []}
+                    />
                 </div>
             </section>
 

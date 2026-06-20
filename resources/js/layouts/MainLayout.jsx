@@ -8,6 +8,7 @@ const PAGE_TITLES = {
     kategori: 'Kategori Anggaran',
     laporan: 'Analisis & Laporan',
     notifikasi: 'Notifikasi',
+    profil: 'Profil Pengguna',
 };
 
 const TYPE_CONFIG = {
@@ -49,7 +50,8 @@ export default function MainLayout({
     onNavigate, 
     notifications = [], 
     onMarkAllRead, 
-    onMarkRead 
+    onMarkRead,
+    userProfile
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [notifOpen, setNotifOpen] = useState(false);
@@ -105,6 +107,7 @@ export default function MainLayout({
                 isOpen={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
                 unreadCount={unreadCount}
+                userProfile={userProfile}
             />
 
             {/* ── Area konten utama ── */}

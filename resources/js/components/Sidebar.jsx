@@ -53,7 +53,7 @@ const MANAGE_ITEMS = [
  * @param {boolean}  isOpen       - Apakah sidebar terbuka (mobile)
  * @param {Function} onClose      - Callback tutup sidebar (mobile)
  */
-export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unreadCount = 0 }) {
+export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unreadCount = 0, userProfile }) {
     const [isLogoutOpen, setIsLogoutOpen] = useState(false);
     // const navigate = useNavigate(); // React Router not installed; using window.location for redirect
 
@@ -65,7 +65,7 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                 onConfirm={() => {
                     setIsLogoutOpen(false);
                     // Clear authentication state if needed, e.g., localStorage.removeItem('authToken');
-                    window.location.href = '/login';
+                    onNavigate('auth');
                 }} 
             />
             <aside
@@ -172,22 +172,28 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                     style={{ borderTop: '1px solid var(--border-subtle)' }}
                 >
                     {/* User */}
-                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl">
+                    <button 
+                        onClick={() => onNavigate('profil')}
+                        className="flex items-center gap-3 px-3 py-3 w-full rounded-xl transition-all duration-150"
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
                         <div
-                            className="flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold flex-shrink-0"
+                            className="flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold flex-shrink-0 bg-cover bg-center"
                             style={{
                                 backgroundColor: 'var(--accent)',
                                 color: 'var(--text-on-accent)',
+                                backgroundImage: userProfile?.photo ? `url(${userProfile.photo})` : 'none'
                             }}
                         >
-                            U
+                            {!userProfile?.photo && (userProfile?.firstName?.charAt(0) || 'U')}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 text-left flex-1">
                             <p
                                 className="text-sm font-semibold truncate"
                                 style={{ color: 'var(--text-primary)' }}
                             >
-                                User
+                                {userProfile?.firstName || 'User'} {userProfile?.lastName || ''}
                             </p>
                             <p
                                 className="text-xs truncate"
@@ -196,7 +202,7 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                                 Administrator
                             </p>
                         </div>
-                    </div>
+                    </button>
 
                     {/* Logout */}
                     <button

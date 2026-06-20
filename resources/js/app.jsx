@@ -8,6 +8,7 @@ import TambahTransaksiPage from './pages/TambahTransaksiPage';
 import AturBudgetPage from './pages/AturBudgetPage';
 import LaporanPage from './pages/LaporanPage';
 import AuthPage from './pages/AuthPage';
+import ProfilPage from './pages/ProfilPage';
 
 // Initial dummy notifications
 const INITIAL_NOTIFICATIONS = [
@@ -46,6 +47,17 @@ export default function App() {
     const [notifications, setNotifications] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState([]);
+
+    const [userProfile, setUserProfile] = useState({
+        firstName: 'Felecia',
+        lastName: 'Burke',
+        email: 'example@mail.com',
+        dobDay: '10',
+        dobMonth: 'June',
+        dobYear: '1990',
+        gender: 'Female',
+        photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=260&h=260'
+    });
 
     // Fetch initial data from backend API
     useEffect(() => {
@@ -226,6 +238,8 @@ export default function App() {
                         onMarkRead={handleMarkRead} 
                     />
                 );
+            case 'profil':
+                return <ProfilPage userProfile={userProfile} onUpdateProfile={setUserProfile} />;
             case 'auth':
                 return <AuthPage onLogin={setCurrentPage} />;
             default:
@@ -249,6 +263,7 @@ export default function App() {
             notifications={notifications}
             onMarkAllRead={handleMarkAllRead}
             onMarkRead={handleMarkRead}
+            userProfile={userProfile}
         >
             {renderPage()}
         </MainLayout>

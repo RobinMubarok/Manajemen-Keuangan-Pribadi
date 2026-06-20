@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, ChevronDown, Bell, Info, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, ChevronDown, Bell, X } from 'lucide-react';
 
 /**
  * AturBudgetPage
@@ -13,16 +13,30 @@ import { Calendar, ChevronDown, Bell, Info, X } from 'lucide-react';
  *   - Tombol Batal & Simpan
  *
  * @param {Function} onNavigate - Callback untuk navigasi antar halaman
- * @param {Object}   budgetData - Data budget dari parent (opsional)
- * @param {Function} onSave     - Callback saat budget disimpan (opsional)
+ * @param {Object}   budgetData - Data budget dari parent (async fetch dari App.jsx)
+ * @param {Function} onSave     - Callback saat budget disimpan
  */
 export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
-    const [harianBudget, setHarianBudget] = useState(budgetData?.harian || '');
-    const [bulananBudget, setBulananBudget] = useState(budgetData?.bulanan || '');
-    const [kategoriBudget, setKategoriBudget] = useState(budgetData?.kategori || 'Harian');
-    const [notifikasiAktif, setNotifikasiAktif] = useState(budgetData?.notifikasi ?? true);
-    const [alertHampirHabis, setAlertHampirHabis] = useState(budgetData?.alertHampirHabis ?? true);
-    const [alertMelebihi, setAlertMelebihi] = useState(budgetData?.alertMelebihi ?? true);
+    const [harianBudget, setHarianBudget] = useState('');
+    const [bulananBudget, setBulananBudget] = useState('');
+    const [kategoriBudget, setKategoriBudget] = useState('Harian');
+    const [notifikasiAktif, setNotifikasiAktif] = useState(true);
+    const [alertHampirHabis, setAlertHampirHabis] = useState(true);
+    const [alertMelebihi, setAlertMelebihi] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState('');
+
+    // Sync form fields when budgetData loads (fetched async from App.jsx)
+    useEffect(() => {
+        if (budgetData) {
+            setHarianBudget(budgetData.harian ? String(budgetData.harian) : '');
+            setBulananBudget(budgetData.bulanan ? String(budgetData.bulanan) : '');
+            setKategoriBudget(budgetData.kategori || 'Harian');
+            setNotifikasiAktif(budgetData.notifikasi ?? true);
+            setAlertHampirHabis(budgetData.alertHampirHabis ?? true);
+            setAlertMelebihi(budgetData.alertMelebihi ?? true);
+        }
+    }, [budgetData]);
 
     /**
      * Format angka menjadi format Rupiah yang bersih untuk input.
@@ -47,7 +61,7 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
         return num.toLocaleString('id-ID');
     };
 
-    const handleSimpan = () => {
+    const handleSimpan = async () => {
         const data = {
             harian: harianBudget ? parseInt(harianBudget, 10) : 0,
             bulanan: bulananBudget ? parseInt(bulananBudget, 10) : 0,
@@ -57,11 +71,19 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
             alertMelebihi,
         };
 
-        if (onSave) {
-            onSave(data);
-        }
+        setSaveError('');
+        setIsSaving(true);
 
-        onNavigate('transaksi');
+        try {
+            if (onSave) {
+                await onSave(data);
+            }
+            onNavigate('transaksi');
+        } catch {
+            setSaveError('Gagal menyimpan budget. Coba lagi.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleBatal = () => {
@@ -324,11 +346,19 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                         </label>
                     </div>
 
+                    {/* Error message */}
+                    {saveError && (
+                        <p className="text-xs text-center" style={{ color: 'var(--negative)' }}>
+                            {saveError}
+                        </p>
+                    )}
+
                     {/* Tombol Batal & Simpan */}
                     <div className="flex items-center gap-3 pt-4">
                         <button
                             type="button"
                             onClick={handleBatal}
+                            disabled={isSaving}
                             className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-colors"
                             style={{
                                 backgroundColor: 'var(--bg-input)',
@@ -343,16 +373,17 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                         <button
                             type="button"
                             onClick={handleSimpan}
-                            className="flex-[2] py-2.5 rounded-lg font-bold text-sm transition-all"
+                            disabled={isSaving}
+                            className="flex-[2] py-2.5 rounded-lg font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                             style={{
                                 backgroundColor: 'var(--accent)',
                                 color: 'var(--text-on-accent)',
                                 border: 'none',
                             }}
-                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
-                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
+                            onMouseEnter={e => { if (!isSaving) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'; }}
+                            onMouseLeave={e => { if (!isSaving) e.currentTarget.style.backgroundColor = 'var(--accent)'; }}
                         >
-                            Simpan
+                            {isSaving ? 'Menyimpan...' : 'Simpan'}
                         </button>
                     </div>
                 </div>

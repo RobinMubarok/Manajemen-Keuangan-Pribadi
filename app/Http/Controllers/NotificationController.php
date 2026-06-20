@@ -3,21 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 
 class NotificationController extends Controller
 {
     /**
-     * Retrieve notifications for user 1.
-     *
-     * @return JsonResponse
+     * Retrieve notifications for the authenticated user.
      */
     public function index(): JsonResponse
     {
         Carbon::setLocale('id');
 
-        $notifications = Notification::where('user_id', 1)
+        $notifications = Notification::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function (Notification $n) {
@@ -48,13 +46,10 @@ class NotificationController extends Controller
 
     /**
      * Mark a single notification as read.
-     *
-     * @param  int  $id
-     * @return JsonResponse
      */
     public function markRead(int $id): JsonResponse
     {
-        $notification = Notification::where('user_id', 1)->findOrFail($id);
+        $notification = Notification::where('user_id', auth()->id())->findOrFail($id);
         $notification->update(['is_read' => true]);
 
         return response()->json(['success' => true]);
@@ -62,12 +57,10 @@ class NotificationController extends Controller
 
     /**
      * Mark all notifications as read.
-     *
-     * @return JsonResponse
      */
     public function markAllRead(): JsonResponse
     {
-        Notification::where('user_id', 1)
+        Notification::where('user_id', auth()->id())
             ->where('is_read', false)
             ->update(['is_read' => true]);
 

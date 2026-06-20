@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import MainLayout from './layouts/MainLayout';
 import DashboardPage from './pages/DashboardPage';
@@ -10,80 +10,163 @@ import LaporanPage from './pages/LaporanPage';
 import AuthPage from './pages/AuthPage';
 import ProfilPage from './pages/ProfilPage';
 
-// Initial dummy notifications
-const INITIAL_NOTIFICATIONS = [
-    { id: 1, message: 'Budget Makanan hampir habis (85% terpakai)', time: 'Sekitar 23 jam yang lalu', type: 'warning', read: false },
-    { id: 2, message: 'Jangan lupa catat pengeluaran hari ini', time: '1 hari yang lalu', type: 'reminder', read: false },
-    { id: 3, message: 'Transaksi berhasil disimpan: Langganan streaming', time: '1 hari yang lalu', type: 'success', read: true },
-    { id: 4, message: 'Budget Transportasi hampir habis (80% terpakai)', time: '3 hari yang lalu', type: 'warning', read: true },
-];
-
-// Initial dummy transactions — nanti diganti dengan API call saat backend siap
-const INITIAL_TRANSACTIONS = [
-    { id: 1, date: '19/5/2026', category: 'Hiburan', description: 'Langganan Streaming', amount: -350000, type: 'Pengeluaran' },
-    { id: 2, date: '18/5/2026', category: 'Beasiswa', description: 'Beasiswa Indonesia Jaya', amount: 5800000, type: 'Pemasukan' },
-    { id: 3, date: '17/5/2026', category: 'Makanan', description: 'Kopi & Snack', amount: -50000, type: 'Pengeluaran' },
-    { id: 4, date: '17/5/2026', category: 'Belanja', description: 'Beli Baju', amount: -750000, type: 'Pengeluaran' },
-    { id: 5, date: '16/5/2026', category: 'Transportasi', description: 'Grab ke kampus', amount: -50000, type: 'Pengeluaran' },
-    { id: 6, date: '15/5/2026', category: 'Makanan', description: 'DO Gacoan', amount: -50000, type: 'Pengeluaran' },
-    { id: 7, date: '14/5/2026', category: 'Kesehatan', description: 'Vitamin C', amount: -200000, type: 'Pengeluaran' },
-];
+/**
+ * Helper: return Authorization headers from localStorage token.
+ * All authenticated API calls must use this.
+ *
+ * @returns {Record<string, string>}
+ */
+function authHeaders() {
+    const token = localStorage.getItem('auth_token');
+    return {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+}
 
 /**
  * Root App component.
  *
- * Handles page-level routing state and centralized transaction data.
- * When the team adds new pages, they only need to:
- *   1. Import the new page component.
- *   2. Add a case to the switch below.
- * MainLayout and Sidebar do NOT need to be modified.
- *
- * Transaction CRUD is centralized here so all pages share the same data.
- * When connecting to a database later, replace useState with API calls
- * (e.g. useEffect + fetch) and update the handlers to call the API.
+ * Handles page-level routing state and centralized data.
+ * Authentication state is derived from localStorage token.
+ * All API calls include Bearer token via authHeaders().
  */
 export default function App() {
-    const [currentPage, setCurrentPage] = useState('auth');
+    // Determine initial page based on whether a token is already stored
+    const hasToken = Boolean(localStorage.getItem('auth_token'));
+    const [currentPage, setCurrentPage] = useState(hasToken ? 'dashboard' : 'auth');
+
     const [notifications, setNotifications] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [budgetData, setBudgetData] = useState(null);
 
-    const [userProfile, setUserProfile] = useState({
-        firstName: 'Felecia',
-        lastName: 'Burke',
-        email: 'example@mail.com',
-        dobDay: '10',
-        dobMonth: 'June',
-        dobYear: '1990',
-        gender: 'Female',
-        photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=260&h=260'
+    const [userProfile, setUserProfile] = useState(() => {
+        const stored = localStorage.getItem('auth_user');
+        if (stored) {
+            const user = JSON.parse(stored);
+            return {
+                firstName: user.name?.split(' ')[0] || user.name,
+                lastName: user.name?.split(' ').slice(1).join(' ') || '',
+                email: user.email,
+                dobDay: '',
+                dobMonth: '',
+                dobYear: '',
+                gender: '',
+                photo: null,
+            };
+        }
+        return {
+            firstName: '',
+            lastName: '',
+            email: '',
+            dobDay: '',
+            dobMonth: '',
+            dobYear: '',
+            gender: '',
+            photo: null,
+        };
     });
 
-    // Fetch initial data from backend API
-    useEffect(() => {
-        // Fetch notifications
-        fetch('/api/notifications')
-            .then((res) => res.json())
+    // State untuk menyimpan transaksi yang sedang di-edit
+    const [editingTransaction, setEditingTransaction] = useState(null);
+
+    /**
+     * Fetch semua data awal dari API setelah login.
+     * Hanya dipanggil ketika user sudah ter-autentikasi.
+     */
+    const fetchInitialData = useCallback(() => {
+        const headers = authHeaders();
+
+        fetch('/api/notifications', { headers })
+            .then((res) => {
+                if (!res.ok) { throw new Error('Unauthenticated'); }
+                return res.json();
+            })
             .then((data) => setNotifications(data))
             .catch((err) => console.error('Error fetching notifications:', err));
-        // Fetch transactions
-        fetch('/api/transactions')
-            .then((res) => res.json())
+
+        fetch('/api/transactions', { headers })
+            .then((res) => {
+                if (!res.ok) { throw new Error('Unauthenticated'); }
+                return res.json();
+            })
             .then((data) => setTransactions(data))
             .catch((err) => console.error('Error fetching transactions:', err));
-        // Fetch categories
-        fetch('/api/categories')
-            .then((res) => res.json())
+
+        fetch('/api/categories', { headers })
+            .then((res) => {
+                if (!res.ok) { throw new Error('Unauthenticated'); }
+                return res.json();
+            })
             .then((data) => setCategories(data))
             .catch((err) => console.error('Error fetching categories:', err));
+
+        fetch('/api/budget', { headers })
+            .then((res) => {
+                if (!res.ok) { throw new Error('Unauthenticated'); }
+                return res.json();
+            })
+            .then((data) => setBudgetData(data))
+            .catch((err) => console.error('Error fetching budget:', err));
     }, []);
 
-    // State untuk menyimpan transaksi yang sedang di-edit (dioper ke halaman edit)
-    const [editingTransaction, setEditingTransaction] = useState(null);
+    useEffect(() => {
+        if (currentPage !== 'auth') {
+            fetchInitialData();
+        }
+    }, [currentPage, fetchInitialData]);
+
+    /* ─────────────── AUTH HANDLERS ─────────────── */
+
+    /**
+     * Dipanggil oleh AuthPage setelah login/register berhasil.
+     * Token sudah disimpan ke localStorage oleh AuthPage.
+     */
+    const handleLogin = (page) => {
+        // Refresh user profile from localStorage after login
+        const stored = localStorage.getItem('auth_user');
+        if (stored) {
+            const user = JSON.parse(stored);
+            setUserProfile({
+                firstName: user.name?.split(' ')[0] || user.name,
+                lastName: user.name?.split(' ').slice(1).join(' ') || '',
+                email: user.email,
+                dobDay: '',
+                dobMonth: '',
+                dobYear: '',
+                gender: '',
+                photo: null,
+            });
+        }
+        setCurrentPage(page || 'dashboard');
+    };
+
+    /**
+     * Logout: hapus token, kembali ke halaman auth.
+     */
+    const handleLogout = () => {
+        fetch('/api/logout', {
+            method: 'POST',
+            headers: authHeaders(),
+        }).finally(() => {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            setNotifications([]);
+            setTransactions([]);
+            setCategories([]);
+            setBudgetData(null);
+            setCurrentPage('auth');
+        });
+    };
+
+    /* ─────────────── NOTIFICATION HANDLERS ─────────────── */
 
     const handleMarkAllRead = () => {
         fetch('/api/notifications/mark-all-read', {
             method: 'POST',
+            headers: authHeaders(),
         })
             .then(() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true }))))
             .catch((err) => console.error('Error marking all notifications read:', err));
@@ -92,6 +175,7 @@ export default function App() {
     const handleMarkRead = (id) => {
         fetch(`/api/notifications/${id}/mark-read`, {
             method: 'POST',
+            headers: authHeaders(),
         })
             .then(() => setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n))))
             .catch((err) => console.error('Error marking notification read:', err));
@@ -101,14 +185,13 @@ export default function App() {
 
     /**
      * Tambah transaksi baru.
-     * Nanti: ganti dengan POST ke API /api/transactions
      *
      * @param {Object} transaction - Data transaksi tanpa id
      */
     const handleAddTransaction = (transaction) => {
         fetch('/api/transactions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(transaction),
         })
             .then((res) => res.json())
@@ -118,14 +201,13 @@ export default function App() {
 
     /**
      * Update transaksi yang sudah ada.
-     * Nanti: ganti dengan PUT ke API /api/transactions/{id}
      *
      * @param {Object} updatedTransaction - Data transaksi lengkap dengan id
      */
     const handleEditTransaction = (updatedTransaction) => {
         fetch(`/api/transactions/${updatedTransaction.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(updatedTransaction),
         })
             .then(() => setTransactions((prev) => prev.map((tx) => (tx.id === updatedTransaction.id ? updatedTransaction : tx))))
@@ -134,13 +216,13 @@ export default function App() {
 
     /**
      * Hapus transaksi berdasarkan id.
-     * Nanti: ganti dengan DELETE ke API /api/transactions/{id}
      *
      * @param {number} id - ID transaksi yang akan dihapus
      */
     const handleDeleteTransaction = (id) => {
         fetch(`/api/transactions/${id}`, {
             method: 'DELETE',
+            headers: authHeaders(),
         })
             .then(() => setTransactions((prev) => prev.filter((tx) => tx.id !== id)))
             .catch((err) => console.error('Error deleting transaction:', err));
@@ -166,7 +248,7 @@ export default function App() {
     const handleAddCategory = async (category) => {
         const res = await fetch('/api/categories', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(category),
         });
 
@@ -185,25 +267,51 @@ export default function App() {
      * @param {number} id - ID kategori
      */
     const handleDeleteCategory = (id) => {
-        fetch(`/api/categories/${id}`, { method: 'DELETE' })
+        fetch(`/api/categories/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        })
             .then(() => setCategories((prev) => prev.filter((c) => c.id !== id)))
             .catch((err) => console.error('Error deleting category:', err));
     };
+
+    /* ─────────────── BUDGET HANDLERS ─────────────── */
+
+    /**
+     * Simpan budget via API dan update state.
+     *
+     * @param {Object} data - Data budget dari AturBudgetPage
+     */
+    const handleSaveBudget = async (data) => {
+        const res = await fetch('/api/budget', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(data),
+        });
+
+        if (!res.ok) {
+            throw new Error('Gagal menyimpan budget');
+        }
+
+        const saved = await res.json();
+        setBudgetData(saved);
+    };
+
+    /* ─────────────── RENDER ─────────────── */
 
     const renderPage = () => {
         switch (currentPage) {
             case 'dashboard':
                 return (
-                    <DashboardPage 
-                        notifications={notifications} 
-                        onMarkRead={handleMarkRead} 
+                    <DashboardPage
+                        notifications={notifications}
+                        onMarkRead={handleMarkRead}
                     />
                 );
-            // Tim dapat menambahkan halaman baru di sini:
             case 'transaksi':
                 return (
-                    <TransaksiPage 
-                        onNavigate={setCurrentPage} 
+                    <TransaksiPage
+                        onNavigate={setCurrentPage}
                         transactions={transactions}
                         onDelete={handleDeleteTransaction}
                         onNavigateToEdit={handleNavigateToEdit}
@@ -214,56 +322,63 @@ export default function App() {
                 );
             case 'tambah-transaksi':
                 return (
-                    <TambahTransaksiPage 
-                        onNavigate={setCurrentPage} 
+                    <TambahTransaksiPage
+                        onNavigate={setCurrentPage}
                         onAdd={handleAddTransaction}
+                        categories={categories}
                     />
                 );
             case 'edit-transaksi':
                 return (
-                    <TambahTransaksiPage 
-                        onNavigate={setCurrentPage} 
+                    <TambahTransaksiPage
+                        onNavigate={setCurrentPage}
                         onEdit={handleEditTransaction}
                         editData={editingTransaction}
+                        categories={categories}
                     />
                 );
             case 'atur-budget':
-                return <AturBudgetPage onNavigate={setCurrentPage} />;
+                return (
+                    <AturBudgetPage
+                        onNavigate={setCurrentPage}
+                        budgetData={budgetData}
+                        onSave={handleSaveBudget}
+                    />
+                );
             case 'laporan':
                 return <LaporanPage />;
             case 'notifikasi':
                 return (
-                    <NotifikasiPage 
-                        notifications={notifications} 
-                        onMarkRead={handleMarkRead} 
+                    <NotifikasiPage
+                        notifications={notifications}
+                        onMarkRead={handleMarkRead}
                     />
                 );
             case 'profil':
                 return <ProfilPage userProfile={userProfile} onUpdateProfile={setUserProfile} />;
-            case 'auth':
-                return <AuthPage onLogin={setCurrentPage} />;
             default:
                 return (
-                    <DashboardPage 
-                        notifications={notifications} 
-                        onMarkRead={handleMarkRead} 
+                    <DashboardPage
+                        notifications={notifications}
+                        onMarkRead={handleMarkRead}
                     />
                 );
         }
     };
 
     if (currentPage === 'auth') {
-        return <AuthPage onLogin={setCurrentPage} />;
+        return <AuthPage onLogin={handleLogin} />;
     }
 
     return (
-        <MainLayout 
-            currentPage={currentPage} 
+        <MainLayout
+            currentPage={currentPage}
             onNavigate={setCurrentPage}
             notifications={notifications}
             onMarkAllRead={handleMarkAllRead}
             onMarkRead={handleMarkRead}
             userProfile={userProfile}
+            onLogout={handleLogout}
         >
             {renderPage()}
         </MainLayout>

@@ -13,7 +13,7 @@ class CategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::where('user_id', 1)
+        $categories = Category::where('user_id', auth()->id())
             ->orderBy('name')
             ->get()
             ->map(fn (Category $c) => [
@@ -42,7 +42,7 @@ class CategoryController extends Controller
         $categoryType = strtolower($validated['type']);
 
         // Check for duplicate name+type for this user
-        $exists = Category::where('user_id', 1)
+        $exists = Category::where('user_id', auth()->id())
             ->where('name', $validated['name'])
             ->where('type', $categoryType)
             ->exists();
@@ -55,7 +55,7 @@ class CategoryController extends Controller
         }
 
         $category = Category::create([
-            'user_id' => 1,
+            'user_id' => auth()->id(),
             'name' => $validated['name'],
             'type' => $categoryType,
             'icon' => $validated['icon'] ?? null,
@@ -76,7 +76,7 @@ class CategoryController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        $category = Category::where('user_id', 1)->findOrFail($id);
+        $category = Category::where('user_id', auth()->id())->findOrFail($id);
         $category->delete();
 
         return response()->json(['message' => 'Kategori berhasil dihapus.']);

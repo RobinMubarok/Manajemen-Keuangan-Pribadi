@@ -4,31 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Models\UserSetting;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BudgetController extends Controller
 {
     /**
-     * Retrieve budget and settings for user 1.
-     *
-     * @return JsonResponse
+     * Retrieve budget and settings for the authenticated user.
      */
     public function index(): JsonResponse
     {
+        $userId = auth()->id();
+
         $settings = UserSetting::firstOrCreate(
-            ['user_id' => 1],
+            ['user_id' => $userId],
             [
                 'daily_reminder_enabled' => true,
                 'budget_alert_enabled' => true,
             ]
         );
 
-        $harianBudget = Budget::where('user_id', 1)
+        $harianBudget = Budget::where('user_id', $userId)
             ->where('period', 'harian')
             ->first();
 
-        $bulananBudget = Budget::where('user_id', 1)
+        $bulananBudget = Budget::where('user_id', $userId)
             ->where('period', 'bulanan')
             ->first();
 
@@ -43,13 +43,12 @@ class BudgetController extends Controller
     }
 
     /**
-     * Save/Update budget and settings for user 1.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
+     * Save/Update budget and settings for the authenticated user.
      */
     public function store(Request $request): JsonResponse
     {
+        $userId = auth()->id();
+
         $request->validate([
             'harian' => 'nullable|integer',
             'bulanan' => 'nullable|integer',
@@ -60,27 +59,32 @@ class BudgetController extends Controller
 
         // 1. Update/create budgets
         Budget::updateOrCreate(
-            ['user_id' => 1, 'period' => 'harian', 'category_id' => null],
+            ['user_id' => $userId, 'period' => 'harian', 'category_id' => null],
             ['amount' => $request->input('harian', 0)]
         );
 
         Budget::updateOrCreate(
-            ['user_id' => 1, 'period' => 'bulanan', 'category_id' => null],
+            ['user_id' => $userId, 'period' => 'bulanan', 'category_id' => null],
             ['amount' => $request->input('bulanan', 0)]
         );
 
         // 2. Update settings
-        $settings = UserSetting::updateOrCreate(
-            ['user_id' => 1],
+        UserSetting::updateOrCreate(
+            ['user_id' => $userId],
             [
                 'daily_reminder_enabled' => $request->notifikasi,
                 'budget_alert_enabled' => $request->alertHampirHabis || $request->alertMelebihi,
             ]
         );
 
+        // Return updated budget data so frontend can update state immediately
         return response()->json([
-            'success' => true,
-            'message' => 'Budget dan pengaturan berhasil disimpan.'
+            'harian' => (int) $request->input('harian', 0),
+            'bulanan' => (int) $request->input('bulanan', 0),
+            'kategori' => 'Harian',
+            'notifikasi' => $request->notifikasi,
+            'alertHampirHabis' => $request->alertHampirHabis,
+            'alertMelebihi' => $request->alertMelebihi,
         ]);
     }
 }

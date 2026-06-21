@@ -41,6 +41,7 @@ export default function App() {
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState([]);
     const [budgetData, setBudgetData] = useState(null);
+    const [isLoadingNotif, setIsLoadingNotif] = useState(false);
 
     // State untuk menyimpan transaksi yang sedang di-edit
     const [editingTransaction, setEditingTransaction] = useState(null);
@@ -58,6 +59,7 @@ export default function App() {
      */
     const fetchInitialData = useCallback(() => {
         const headers = authHeaders();
+        setIsLoadingNotif(true);
 
         fetch('/api/notifications', { headers })
             .then((res) => {
@@ -69,7 +71,8 @@ export default function App() {
                 return res.json();
             })
             .then((data) => setNotifications(data))
-            .catch((err) => console.error('Error fetching notifications:', err));
+            .catch((err) => console.error('Error fetching notifications:', err))
+            .finally(() => setIsLoadingNotif(false));
 
         fetch('/api/transactions', { headers })
             .then((res) => {
@@ -80,7 +83,11 @@ export default function App() {
                 if (!res.ok) { throw new Error('Failed to fetch transactions'); }
                 return res.json();
             })
-            .then((data) => setTransactions(data))
+            .then((data) => {
+                setTransactions(data);
+                // After initial load, evaluate budget alerts
+                checkBudgetAlerts(budgetData, data);
+            })
             .catch((err) => console.error('Error fetching transactions:', err));
 
         fetch('/api/categories', { headers })
@@ -170,6 +177,44 @@ export default function App() {
             .catch((err) => console.error('Error marking notification read:', err));
     };
 
+    /**
+     * Re-fetch semua notifikasi dari server dan perbarui state.
+     * Dipanggil setelah setiap mutasi transaksi agar bell icon & sidebar selalu sinkron.
+     */
+    const refreshNotifications = useCallback(() => {
+        setIsLoadingNotif(true);
+        fetch('/api/notifications', { headers: authHeaders() })
+            .then((res) => {
+                if (!res.ok) throw new Error('Failed to refresh notifications');
+                return res.json();
+            })
+            .then((data) => setNotifications(data))
+            .catch((err) => console.error('Error refreshing notifications:', err))
+            .finally(() => setIsLoadingNotif(false));
+    }, []);
+
+    /**
+     * Kirim notifikasi baru ke database dan perbarui state di frontend.
+     *
+     * @param {string} title   - Judul notifikasi
+     * @param {string} message - Isi pesan notifikasi
+     * @param {string} type    - Tipe notifikasi ('success', 'info', 'warning')
+     */
+    const addTransactionNotification = useCallback(async (title, message, type) => {
+        try {
+            const res = await fetch('/api/notifications', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ title, message, type }),
+            });
+            if (res.ok) {
+                refreshNotifications();
+            }
+        } catch (err) {
+            console.error('Error adding transaction notification:', err);
+        }
+    }, [refreshNotifications]);
+
     /* ─────────────── TRANSACTION CRUD HANDLERS ─────────────── */
 
     /**
@@ -177,15 +222,33 @@ export default function App() {
      *
      * @param {Object} transaction - Data transaksi tanpa id
      */
-    const handleAddTransaction = (transaction) => {
-        fetch('/api/transactions', {
-            method: 'POST',
-            headers: authHeaders(),
-            body: JSON.stringify(transaction),
-        })
-            .then((res) => res.json())
-            .then((newTx) => setTransactions((prev) => [newTx, ...prev]))
-            .catch((err) => console.error('Error adding transaction:', err));
+    const handleAddTransaction = async (transaction) => {
+        try {
+            const res = await fetch('/api/transactions', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify(transaction),
+            });
+            const newTx = await res.json();
+            const updatedTransactions = [newTx, ...transactions];
+            setTransactions(updatedTransactions);
+            
+            // Cek budget alert setelah transaksi baru ditambahkan
+            if (budgetData) {
+                await checkBudgetAlerts(budgetData, updatedTransactions);
+            }
+
+            // Kirim notifikasi transaksi berhasil ditambahkan
+            const formattedAmount = 'Rp ' + Math.abs(Number(newTx.amount)).toLocaleString('id-ID');
+            const typeLabel = newTx.type === 'Pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+            await addTransactionNotification(
+                '✅ Transaksi Berhasil',
+                `${typeLabel} ${formattedAmount} berhasil ditambahkan`,
+                'success'
+            );
+        } catch (err) {
+            console.error('Error adding transaction:', err);
+        }
     };
 
     /**
@@ -199,7 +262,22 @@ export default function App() {
             headers: authHeaders(),
             body: JSON.stringify(updatedTransaction),
         })
-            .then(() => setTransactions((prev) => prev.map((tx) => (tx.id === updatedTransaction.id ? updatedTransaction : tx))))
+            .then(() => {
+                // Update local state
+                setTransactions((prev) => prev.map((tx) => (tx.id === updatedTransaction.id ? updatedTransaction : tx)));
+                
+                // Re‑evaluate budget alerts after edit
+                if (budgetData) {
+                    checkBudgetAlerts(budgetData, transactions.map((tx) => (tx.id === updatedTransaction.id ? updatedTransaction : tx)));
+                }
+
+                // Kirim notifikasi transaksi berhasil diperbarui
+                addTransactionNotification(
+                    '✏️ Transaksi Diperbarui',
+                    `Transaksi "${updatedTransaction.description}" berhasil diperbarui`,
+                    'info'
+                );
+            })
             .catch((err) => console.error('Error editing transaction:', err));
     };
 
@@ -209,11 +287,23 @@ export default function App() {
      * @param {number} id - ID transaksi yang akan dihapus
      */
     const handleDeleteTransaction = (id) => {
+        const targetTx = transactions.find((tx) => tx.id === id);
+        const description = targetTx ? targetTx.description : 'transaksi';
+
         fetch(`/api/transactions/${id}`, {
             method: 'DELETE',
             headers: authHeaders(),
         })
-            .then(() => setTransactions((prev) => prev.filter((tx) => tx.id !== id)))
+            .then(() => {
+                setTransactions((prev) => prev.filter((tx) => tx.id !== id));
+                
+                // Kirim notifikasi transaksi berhasil dihapus
+                addTransactionNotification(
+                    '🗑️ Transaksi Dihapus',
+                    `Transaksi "${description}" berhasil dihapus`,
+                    'warning'
+                );
+            })
             .catch((err) => console.error('Error deleting transaction:', err));
     };
 
@@ -267,6 +357,67 @@ export default function App() {
     /* ─────────────── BUDGET HANDLERS ─────────────── */
 
     /**
+     * Cek apakah pengeluaran bulan ini sudah melewati threshold budget
+     * dan tambahkan notifikasi ke state (& API) jika perlu.
+     *
+     * @param {Object} budget      - Budget data (dari state atau freshly saved)
+     * @param {Array}  txList      - Daftar transaksi saat ini
+     */
+    const checkBudgetAlerts = useCallback(async (budget, txList) => {
+        if (!budget || !budget.notifikasi) return;
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        // Total pengeluaran bulan ini
+        const totalSpent = txList
+            .filter((tx) => {
+                if (!(tx.type === 'Pengeluaran' || (typeof tx.amount === 'number' && tx.amount < 0))) return false;
+                const txDate = new Date(tx.date);
+                return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+            })
+            .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
+
+        const totalBudget = budget.bulanan || 0;
+        if (totalBudget <= 0) return;
+
+        const percentage = (totalSpent / totalBudget) * 100;
+        const headers = authHeaders();
+        const todayKey = `${currentYear}-${currentMonth}`;
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        // Throttle: max 1 alert per threshold per bulan
+        const sentKey = `budget_alert_sent_${todayKey}`;
+        const alreadySent = localStorage.getItem(sentKey) || '';
+
+        const addNotif = async (type, message, level) => {
+            if (alreadySent.includes(level)) return; // sudah kirim hari ini
+            try {
+                const res = await fetch('/api/notifications', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ type, message }),
+                });
+                if (res.ok) {
+                    const newNotif = await res.json();
+                    setNotifications((prev) => [newNotif, ...prev]);
+                    localStorage.setItem(sentKey, alreadySent + level);
+                }
+            } catch (err) {
+                console.error('Error adding notification:', err);
+            }
+        };
+
+        if (budget.alertMelebihi && percentage >= 100) {
+            await addNotif('warning', `🚨 Budget bulanan MELEBIHI batas! Pengeluaran ${Math.round(percentage)}% dari budget. (${timeStr})`, 'exceeded');
+        } else if (budget.alertHampirHabis && percentage >= 80) {
+            await addNotif('warning', `⚠️ Budget bulanan hampir habis! Pengeluaran sudah ${Math.round(percentage)}% dari budget. (${timeStr})`, 'near');
+        }
+    }, []);
+
+
+    /**
      * Simpan budget via API dan update state.
      *
      * @param {Object} data - Data budget dari AturBudgetPage
@@ -284,6 +435,9 @@ export default function App() {
 
         const saved = await res.json();
         setBudgetData(saved);
+
+        // Cek alert langsung setelah budget disimpan
+        await checkBudgetAlerts(saved, transactions);
     };
 
     /* ─────────────── PROFILE HANDLERS ─────────────── */
@@ -300,6 +454,8 @@ export default function App() {
                         notifications={notifications}
                         onMarkRead={handleMarkRead}
                         onNavigate={setCurrentPage}
+                        transactions={transactions}
+                        budgetData={budgetData}
                     />
                 );
             case 'transaksi':
@@ -379,6 +535,7 @@ export default function App() {
             currentPage={currentPage}
             onNavigate={setCurrentPage}
             notifications={notifications}
+            isLoadingNotif={isLoadingNotif}
             onMarkAllRead={handleMarkAllRead}
             onMarkRead={handleMarkRead}
             onLogout={handleLogout}

@@ -91,9 +91,20 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                             >
                                 {renderIconContainer(notif.type)}
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-sm sm:text-base leading-snug group-hover:text-[var(--accent)] transition-colors" style={{ color: 'var(--text-primary)' }}>
-                                        {notif.message}
-                                    </p>
+                                    {notif.title ? (
+                                        <>
+                                            <h3 className="font-bold text-sm sm:text-base leading-snug group-hover:text-[var(--accent)] transition-colors" style={{ color: 'var(--text-primary)' }}>
+                                                {notif.title}
+                                            </h3>
+                                            <p className="text-xs sm:text-sm mt-1 leading-snug" style={{ color: 'var(--text-body)' }}>
+                                                {notif.message}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <p className="font-semibold text-sm sm:text-base leading-snug group-hover:text-[var(--accent)] transition-colors" style={{ color: 'var(--text-primary)' }}>
+                                            {notif.message}
+                                        </p>
+                                    )}
                                     <div className="flex items-center gap-2 mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                                         <span>{notif.time}</span>
                                         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--border-strong)' }} />
@@ -138,9 +149,20 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                             >
                                 {renderIconContainer(notif.type)}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm sm:text-base leading-snug" style={{ color: 'var(--text-body)' }}>
-                                        {notif.message}
-                                    </p>
+                                    {notif.title ? (
+                                        <>
+                                            <h3 className="font-bold text-sm sm:text-base leading-snug" style={{ color: 'var(--text-primary)' }}>
+                                                {notif.title}
+                                            </h3>
+                                            <p className="text-xs sm:text-sm mt-1 leading-snug" style={{ color: 'var(--text-body)' }}>
+                                                {notif.message}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <p className="text-sm sm:text-base leading-snug" style={{ color: 'var(--text-body)' }}>
+                                            {notif.message}
+                                        </p>
+                                    )}
                                     <span className="text-xs mt-1 block" style={{ color: 'var(--text-muted)' }}>{notif.time}</span>
                                 </div>
                             </div>

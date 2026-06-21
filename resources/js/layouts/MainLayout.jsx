@@ -51,6 +51,7 @@ export default function MainLayout({
     currentPage, 
     onNavigate, 
     notifications = [], 
+    isLoadingNotif = false,
     onMarkAllRead, 
     onMarkRead,
     // removed userProfile prop, will use AuthContext instead
@@ -245,7 +246,19 @@ export default function MainLayout({
                                         className="max-h-72 overflow-y-auto"
                                         style={{ borderBottom: '1px solid var(--border-subtle)' }}
                                     >
-                                        {notifications.length === 0 ? (
+                                        {isLoadingNotif ? (
+                                            <div className="divide-y divide-[var(--border-subtle)]">
+                                                {[...Array(3)].map((_, idx) => (
+                                                    <div key={idx} className="flex gap-3 p-3.5 animate-pulse-slow">
+                                                        <div className="flex-shrink-0 w-8 h-8 rounded-lg skeleton-bg" />
+                                                        <div className="flex-1 space-y-1.5 py-1">
+                                                            <div className="h-2.5 skeleton-bg rounded w-3/4" />
+                                                            <div className="h-2 skeleton-bg rounded w-1/2" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : notifications.length === 0 ? (
                                             <div
                                                 className="p-6 text-center text-xs"
                                                 style={{ color: 'var(--text-muted)' }}
@@ -253,7 +266,7 @@ export default function MainLayout({
                                                 Tidak ada notifikasi
                                             </div>
                                         ) : (
-                                            notifications.map((notif) => {
+                                            notifications.slice(0, 5).map((notif) => {
                                                 const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.info;
                                                 const IconComp = config.Icon;
                                                 return (
@@ -276,11 +289,19 @@ export default function MainLayout({
                                                             <IconComp size={14} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
+                                                            {notif.title && (
+                                                                <h4
+                                                                    className="text-xs font-semibold mb-0.5"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {notif.title}
+                                                                </h4>
+                                                            )}
                                                             <p
-                                                                className="text-xs leading-normal"
+                                                                className="text-[11px] leading-normal"
                                                                 style={{
-                                                                    color: !notif.read ? 'var(--text-primary)' : 'var(--text-body)',
-                                                                    fontWeight: !notif.read ? '600' : '400',
+                                                                    color: !notif.read ? 'var(--text-body)' : 'var(--text-muted)',
+                                                                    fontWeight: !notif.read ? '500' : '400',
                                                                 }}
                                                             >
                                                                 {notif.message}

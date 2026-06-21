@@ -103,3 +103,26 @@ option {
         transform: scale(1) translateY(0);
     }
 }
+
+/* ── Skeleton Loading Styles ── */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton-bg {
+    background-color: #e5e7eb; /* abu-abu muda */
+    transition: background-color 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.dark .skeleton-bg {
+    background-color: #3f3f46; /* dark mode */
+}

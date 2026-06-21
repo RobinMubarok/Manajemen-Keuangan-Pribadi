@@ -26,7 +26,12 @@ class NotificationController extends Controller
                 } elseif ($n->type === 'reminder') {
                     $type = 'reminder';
                 } elseif ($n->type === 'system') {
-                    $type = 'success';
+                    // Map to success if the title/message mentions success or is successful
+                    if (str_contains(strtolower($n->title), 'berhasil') || str_contains(strtolower($n->message), 'berhasil')) {
+                        $type = 'success';
+                    } else {
+                        $type = 'info';
+                    }
                 }
 
                 // Friendly relative time in Indonesian
@@ -34,6 +39,7 @@ class NotificationController extends Controller
 
                 return [
                     'id' => $n->id,
+                    'title' => $n->title,
                     'message' => $n->message,
                     'time' => $time,
                     'type' => $type,
@@ -65,5 +71,43 @@ class NotificationController extends Controller
             ->update(['is_read' => true]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Create a new notification for the authenticated user (called from frontend).
+     */
+    public function store(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title'   => ['nullable', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:500'],
+            'type'    => ['nullable', 'string'],
+        ]);
+
+        // Map frontend type to DB enum (alert/reminder/system)
+        $typeMap = [
+            'warning'  => 'alert',
+            'reminder' => 'reminder',
+            'success'  => 'system',
+            'info'     => 'system',
+        ];
+        $dbType = $typeMap[$validated['type'] ?? 'info'] ?? 'alert';
+
+        $notification = Notification::create([
+            'user_id' => auth()->id(),
+            'title'   => $validated['title'] ?? 'Notifikasi Keuangan',
+            'message' => $validated['message'],
+            'type'    => $dbType,
+            'is_read' => false,
+        ]);
+
+        return response()->json([
+            'id'      => $notification->id,
+            'title'   => $notification->title,
+            'message' => $notification->message,
+            'time'    => $notification->created_at->diffForHumans(),
+            'type'    => $validated['type'] ?? 'warning',
+            'read'    => false,
+        ], 201);
     }
 }

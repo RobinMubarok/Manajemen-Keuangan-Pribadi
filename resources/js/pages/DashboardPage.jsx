@@ -24,7 +24,7 @@ function formatRupiah(amount) {
  * @param {Array}    notifications - Notifikasi aktif dari App.jsx
  * @param {Function} onMarkRead    - Callback untuk menandai dibaca
  */
-export default function DashboardPage({ notifications, onMarkRead, onNavigate }) {
+export default function DashboardPage({ notifications, onMarkRead, onNavigate, transactions = [], budgetData = null }) {
     const [dashboardData, setDashboardData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -49,7 +49,7 @@ export default function DashboardPage({ notifications, onMarkRead, onNavigate })
             .then((data) => setDashboardData(data))
             .catch((err) => console.error('Error fetching dashboard:', err))
             .finally(() => setIsLoading(false));
-    }, [onNavigate]);
+    }, [onNavigate, transactions, budgetData]);
 
     // Compute donut total label from spending data
     const donutTotal = dashboardData?.spendingData?.length

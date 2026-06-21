@@ -20,14 +20,22 @@ const MONTHS = [
 const YEARS = ['2024', '2025', '2026', '2027'];
 
 export default function LaporanPage() {
-    const [selectedMonth, setSelectedMonth] = useState('05'); // Default: Mei
-    const [selectedYear, setSelectedYear] = useState('2026'); // Default: 2026
-    // State for transactions fetched from API
+    const currentDate = new Date();
+    const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const currentYearStr = String(currentDate.getFullYear());
+
+    const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+    const [selectedYear, setSelectedYear] = useState(currentYearStr);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch transactions from backend API whenever month/year filter changes
+    // Saldo Awal Dinamis: Ambil dari state atau API (di-set 0 sebagai nilai awal default)
+    // Jika backend Anda mengirim data saldoAwal bersamaan dengan transaksi, Anda bisa melakukan setSaldoAwal(data.saldoAwal) di useEffect.
+    const [saldoAwal, setSaldoAwal] = useState(0);
+
+    const status = 'Terverifikasi';
+
     useEffect(() => {
         const token = localStorage.getItem('auth_token');
         setLoading(true);
@@ -40,9 +48,7 @@ export default function LaporanPage() {
             },
         })
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
             .then((data) => {
@@ -56,33 +62,30 @@ export default function LaporanPage() {
             });
     }, [selectedMonth, selectedYear]);
 
-    // Transactions are already filtered by month/year from the API
     const filteredTransactions = transactions;
 
-    // Hitung total pemasukan dan pengeluaran secara dinamis
     const totalPemasukan = filteredTransactions
-        .filter(tx => tx.type === 'Pemasukan')
-        .reduce((sum, tx) => sum + tx.amount, 0);
+        .filter(tx => tx.type === 'Pemasukan' || tx.amount > 0)
+        .reduce((sum, tx) => sum + (tx.amount > 0 ? tx.amount : Math.abs(tx.amount)), 0);
 
     const totalPengeluaran = filteredTransactions
-        .filter(tx => tx.type === 'Pengeluaran')
+        .filter(tx => tx.type === 'Pengeluaran' || tx.amount < 0)
         .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
 
-    // Format Rupiah (Indonesia) dengan desimal/sen senilai ,00 sesuai gambar
+    // Total Perubahan murni menghitung transaksi bulan berjalan (Masuk - Keluar)
+    const totalPerubahan = totalPemasukan - totalPengeluaran;
+    
+    // Saldo Akhir murni menggunakan rumus: Saldo Awal Dinamis + Total Perubahan
+    const saldoAkhir = saldoAwal + totalPerubahan;
+
     const formatRupiah = (amount) => {
-        const formatted = amount.toLocaleString('id-ID');
-        return `Rp. ${formatted},00`;
+        return `Rp. ${amount.toLocaleString('id-ID')},00`;
     };
 
-    // Ekspor ke CSV
     const exportCSV = () => {
         const headers = ['Tanggal', 'Kategori', 'Deskripsi', 'Jumlah', 'Tipe'];
         const rows = filteredTransactions.map(tx => [
-            tx.date,
-            tx.category,
-            tx.description,
-            tx.amount,
-            tx.type
+            tx.date, tx.category, tx.description, tx.amount, tx.type
         ]);
 
         const csvContent = "data:text/csv;charset=utf-8," 
@@ -99,42 +102,90 @@ export default function LaporanPage() {
     };
 
     const currentMonthName = MONTHS.find(m => m.value === selectedMonth)?.name || 'Mei';
+    
+    // Logika Periode Dinamis: Mencari tanggal terkecil dan terbesar dari transaksi yang ada
+    let periodeText = `01 - ${new Date(selectedYear, selectedMonth, 0).getDate()} ${currentMonthName} ${selectedYear}`; // Default fallback
+    if (filteredTransactions.length > 0) {
+        const days = filteredTransactions.map(tx => {
+            const dateStr = tx.tanggal || tx.date;
+            if (!dateStr) return 1;
+            // Support format DD/MM/YYYY atau YYYY-MM-DD
+            if (dateStr.includes('/')) {
+                return parseInt(dateStr.split('/')[0], 10);
+            } else if (dateStr.includes('-')) {
+                return parseInt(dateStr.split('-')[2], 10);
+            }
+            return 1;
+        });
+        
+        const minDay = Math.min(...days);
+        const maxDay = Math.max(...days);
+        
+        if (minDay === maxDay) {
+            periodeText = `${minDay} ${currentMonthName} ${selectedYear}`;
+        } else {
+            periodeText = `${minDay} - ${maxDay} ${currentMonthName} ${selectedYear}`;
+        }
+    }
 
-    // Ekspor ke PDF secara langsung tanpa dialog
+    // Konfigurasi Spesifik PDF
     const exportPDF = () => {
-        const element = document.getElementById('laporan-content');
+        const element = document.getElementById('pdf-export-only');
         if (!element) return;
 
+        const clonedElement = element.cloneNode(true);
+        // Memastikan lebar elemen adalah 180mm (A4 Portrait lebar 210mm - (15mm x 2 margin))
+        // Lebar absolut ini menjamin html2canvas tidak memotong sisi kanan.
+        clonedElement.style.width = '180mm';
+        clonedElement.style.maxWidth = '180mm';
+        clonedElement.style.position = 'relative';
+        clonedElement.style.top = '0';
+        clonedElement.style.left = '0';
+        
+        // Membungkus di dalam container layar lebar agar tidak terpotong oleh viewport asli browser
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.top = '0';
+        tempContainer.style.left = '0';
+        tempContainer.style.width = '1200px'; 
+        tempContainer.style.height = '10px';
+        tempContainer.style.overflow = 'hidden';
+        tempContainer.style.zIndex = '-9999';
+        
+        tempContainer.appendChild(clonedElement);
+        document.body.appendChild(tempContainer);
+
         const opt = {
-            margin:       0.5,
+            margin:       1.5, // Margin 1.5 cm
             filename:     `Laporan_Keuangan_${currentMonthName}_${selectedYear}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                windowWidth: 1000 // Menipu viewport agar membaca ruang lebih luas
+            }, 
+            jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
-        html2pdf().set(opt).from(element).save();
+        html2pdf().set(opt).from(clonedElement).save().then(() => {
+            document.body.removeChild(tempContainer);
+        });
     };
 
     return (
         <div id="laporan-content" className="p-6 lg:p-8 space-y-6 max-w-6xl mx-auto print:p-0 print:max-w-full">
-            {/* ── 1. HEADER ── */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:mb-6">
+            {/* ── 1. HEADER (Tampilan Web) ── */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
                 <div>
-                    <h1
-                        className="text-2xl font-bold font-serif"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
+                    <h1 className="text-2xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>
                         Report Keuangan
                     </h1>
-                    <p
-                        className="mt-1 text-sm"
-                        style={{ color: 'var(--text-muted)' }}
-                    >
+                    <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
                         Analisis lengkap transaksi bulanan
                     </p>
                 </div>
-                <div id="action-buttons" className="flex items-center gap-3 print:hidden" data-html2canvas-ignore="true">
+                <div id="action-buttons" className="flex items-center gap-3">
                     <button 
                         onClick={exportPDF}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all"
@@ -143,8 +194,6 @@ export default function LaporanPage() {
                             color: 'var(--accent)',
                             border: '1px solid var(--accent-border)',
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(74,222,128,0.2)'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent-muted)'}
                     >
                         <Download size={18} />
                         Export PDF
@@ -156,11 +205,7 @@ export default function LaporanPage() {
                             backgroundColor: 'var(--accent)',
                             color: 'var(--text-on-accent)',
                             border: 'none',
-                            borderRadius: 'var(--r-pill)',
-                            fontWeight: 700,
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--accent-hover)'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
                     >
                         <Download size={18} />
                         Export CSV
@@ -168,194 +213,74 @@ export default function LaporanPage() {
                 </div>
             </div>
 
-            {/* ── 2. DATE SELECTOR BAR ── */}
-            <div
-                id="filter-bar"
-                className="p-4 rounded-2xl flex items-center gap-3 print:hidden"
-                data-html2canvas-ignore="true"
-                style={{
-                    backgroundColor: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-default)',
-                }}
-            >
+            {/* ── 2. DATE SELECTOR BAR (Tampilan Web) ── */}
+            <div className="p-4 rounded-2xl flex items-center gap-3 print:hidden" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
                 <Calendar style={{ color: 'var(--text-muted)' }} size={22} />
-                
-                {/* Dropdown Bulan */}
                 <div className="relative flex items-center">
-                    <select 
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 text-sm sm:text-base bg-transparent"
-                        style={{ color: 'var(--text-body)', border: 'none' }}
-                    >
-                        {MONTHS.map(m => (
-                            <option key={m.value} value={m.value}>{m.name}</option>
-                        ))}
+                    <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
+                        {MONTHS.map(m => <option key={m.value} value={m.value}>{m.name}</option>)}
                     </select>
-                    <ChevronDown
-                        className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
-                        size={16}
-                        style={{ color: 'var(--text-body)' }}
-                    />
+                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
                 </div>
-
-                <div
-                    className="w-px h-6"
-                    style={{ backgroundColor: 'var(--border-default)' }}
-                />
-
-                {/* Dropdown Tahun */}
+                <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
                 <div className="relative flex items-center">
-                    <select 
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                        className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 text-sm sm:text-base bg-transparent"
-                        style={{ color: 'var(--text-body)', border: 'none' }}
-                    >
-                        {YEARS.map(y => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
+                    <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
+                        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
-                    <ChevronDown
-                        className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
-                        size={16}
-                        style={{ color: 'var(--text-body)' }}
-                    />
+                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
                 </div>
             </div>
 
-            {/* ── 3. SUMMARY CARDS (2 Column Grid) ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Total Pemasukan */}
-                <div
-                    className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px] relative overflow-hidden"
-                    style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        border: '1px solid var(--accent-border)',
-                    }}
-                >
-                    <p
-                        className="text-sm font-semibold"
-                        style={{ color: 'var(--text-muted)' }}
-                    >
-                        Total Pemasukan
-                    </p>
-                    <p
-                        className="text-3xl font-bold font-serif text-center mt-4"
-                        style={{ color: 'var(--positive)' }}
-                    >
-                        {formatRupiah(totalPemasukan)}
-                    </p>
+            {/* ── 3. SUMMARY CARDS (Tampilan Web) ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
+                <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--accent-border)' }}>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Total Pemasukan</p>
+                    <p className="text-3xl font-bold font-serif text-center mt-4" style={{ color: 'var(--positive)' }}>{formatRupiah(totalPemasukan)}</p>
                 </div>
-
-                {/* Total Pengeluaran */}
-                <div
-                    className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px] relative overflow-hidden"
-                    style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-default)',
-                    }}
-                >
-                    <p
-                        className="text-sm font-semibold"
-                        style={{ color: 'var(--text-muted)' }}
-                    >
-                        Total Pengeluaran
-                    </p>
-                    <p
-                        className="text-3xl font-bold font-serif text-center mt-4"
-                        style={{ color: 'var(--negative)' }}
-                    >
-                        {formatRupiah(totalPengeluaran)}
-                    </p>
+                <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Total Pengeluaran</p>
+                    <p className="text-3xl font-bold font-serif text-center mt-4" style={{ color: 'var(--negative)' }}>{formatRupiah(totalPengeluaran)}</p>
                 </div>
             </div>
 
-            {/* ── 4. TABLE SECTION ── */}
-            <div className="space-y-4">
-                <h2
-                    className="text-xl font-bold font-serif"
-                    style={{ color: 'var(--text-primary)' }}
-                >
+            {/* ── 4. TABLE SECTION (Tampilan Web) ── */}
+            <div className="space-y-4 print:hidden">
+                <h2 className="text-xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>
                     Daftar Transaksi {currentMonthName} {selectedYear}
                 </h2>
-
-                <div
-                    className="rounded-2xl overflow-hidden"
-                    style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-default)',
-                    }}
-                >
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr
-                                    className="text-sm"
-                                    style={{
-                                        backgroundColor: 'var(--bg-overlay)',
-                                        borderBottom: '1px solid var(--border-default)',
-                                        color: 'var(--text-primary)',
-                                    }}
-                                >
-                                    <th className="px-6 py-4 font-bold font-serif whitespace-nowrap">Tanggal</th>
-                                    <th className="px-6 py-4 font-bold font-serif whitespace-nowrap">Kategori</th>
-                                    <th className="px-6 py-4 font-bold font-serif min-w-[200px]">Deskripsi</th>
-                                    <th className="px-6 py-4 font-bold font-serif text-right whitespace-nowrap">Jumlah</th>
+                                <tr className="text-sm" style={{ backgroundColor: 'var(--bg-overlay)', borderBottom: '1px solid var(--border-default)' }}>
+                                    <th className="px-6 py-4 font-bold">Tanggal</th>
+                                    <th className="px-6 py-4 font-bold">Kategori</th>
+                                    <th className="px-6 py-4 font-bold min-w-[200px]">Deskripsi</th>
+                                    <th className="px-6 py-4 font-bold text-right">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredTransactions.length === 0 ? (
+                                {loading ? (
                                     <tr>
-                                        <td
-                                            colSpan="4"
-                                            className="px-6 py-10 text-center text-sm"
-                                            style={{ color: 'var(--text-muted)' }}
-                                        >
-                                            Tidak ada transaksi pada bulan ini.
+                                        <td colSpan="4" className="px-6 py-10 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                                            Memuat data transaksi...
                                         </td>
                                     </tr>
+                                ) : filteredTransactions.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="4" className="px-6 py-10 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Tidak ada transaksi pada bulan ini.</td>
+                                    </tr>
                                 ) : (
-                                    filteredTransactions.map((tx) => {
-                                        const isNegative = tx.amount < 0;
-                                        const displayAmount = (isNegative ? '-' : '+') + 'Rp. ' + Math.abs(tx.amount).toLocaleString('id-ID');
-                                        return (
-                                            <tr
-                                                key={tx.id}
-                                                className="transition-colors text-sm"
-                                                style={{ borderTop: '1px solid var(--border-subtle)' }}
-                                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-                                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <td
-                                                    className="px-6 py-4 whitespace-nowrap"
-                                                    style={{ color: 'var(--text-muted)' }}
-                                                >
-                                                    {tx.date}
-                                                </td>
-                                                <td
-                                                    className="px-6 py-4 font-medium whitespace-nowrap"
-                                                    style={{ color: 'var(--text-body)' }}
-                                                >
-                                                    {tx.category}
-                                                </td>
-                                                <td
-                                                    className="px-6 py-4"
-                                                    style={{ color: 'var(--text-muted)' }}
-                                                >
-                                                    {tx.description}
-                                                </td>
-                                                <td
-                                                    className="px-6 py-4 font-bold text-right whitespace-nowrap"
-                                                    style={{
-                                                        color: isNegative ? 'var(--negative)' : 'var(--positive)',
-                                                    }}
-                                                >
-                                                    {displayAmount}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
+                                    filteredTransactions.map((tx) => (
+                                        <tr key={tx.id} className="text-sm" style={{ borderTop: '1px solid var(--border-default)' }}>
+                                            <td className="px-6 py-4" style={{ color: 'var(--text-muted)' }}>{tx.date}</td>
+                                            <td className="px-6 py-4 font-medium" style={{ color: 'var(--text-body)' }}>{tx.category}</td>
+                                            <td className="px-6 py-4" style={{ color: 'var(--text-muted)' }}>{tx.description}</td>
+                                            <td className="px-6 py-4 font-bold text-right" style={{ color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
+                                                {(tx.amount < 0 ? '-' : '+') + 'Rp. ' + Math.abs(tx.amount).toLocaleString('id-ID')}
+                                            </td>
+                                        </tr>
+                                    ))
                                 )}
                             </tbody>
                         </table>
@@ -363,22 +288,95 @@ export default function LaporanPage() {
                 </div>
             </div>
 
-            {/* CSS Cetak Khusus (Media Print) */}
-            <style>{`
-                @media print {
-                    body {
-                        background-color: white !important;
-                        color: black !important;
-                    }
-                    main {
-                        overflow: visible !important;
-                        height: auto !important;
-                    }
-                    aside, header, .print\\:hidden {
-                        display: none !important;
-                    }
-                }
-            `}</style>
+            {/* ── KOMPONEN PDF TERISOLASI (Off-Screen untuk html2pdf.js) ── */}
+            <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', zIndex: -100, width: '100%', pointerEvents: 'none' }}>
+                <div id="pdf-export-only" style={{ width: '180mm', backgroundColor: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif', padding: '0px' }}>
+                    
+                    {/* Header PDF */}
+                    <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                        <h1 style={{ fontSize: '16pt', fontWeight: 'bold', margin: '0 0 5px 0' }}>LAPORAN KEUANGAN BULANAN</h1>
+                        <p style={{ fontSize: '10pt', fontStyle: 'italic', color: '#333', margin: '0' }}>Periode Pemeriksaan Pembukuan Internal</p>
+                    </div>
+
+                    {/* Informasi Meta PDF */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', fontSize: '10pt' }}>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', marginBottom: '8px' }}>
+                                <div style={{ width: '100px', fontWeight: 'bold' }}>Periode:</div>
+                                <div>{periodeText}</div>
+                            </div>
+                            <div style={{ display: 'flex' }}>
+                                <div style={{ width: '100px', fontWeight: 'bold' }}>Saldo Awal:</div>
+                                <div>Rp {saldoAwal.toLocaleString('id-ID')}</div>
+                            </div>
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '150px' }}>
+                                <div style={{ display: 'flex', width: '100%', marginBottom: '8px' }}>
+                                    <div style={{ width: '60px', fontWeight: 'bold' }}>Status:</div>
+                                    <div style={{ color: '#16a34a', fontWeight: 'bold' }}>{status}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tabel Data PDF */}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000', fontSize: '10pt' }}>
+                        <thead>
+                            <tr>
+                                <th style={{ width: '15%', backgroundColor: '#000000', color: '#ffffff', fontWeight: 'bold', padding: '6px 8px', border: '1px solid #000', textAlign: 'center' }}>Tanggal</th>
+                                <th style={{ width: '20%', backgroundColor: '#000000', color: '#ffffff', fontWeight: 'bold', padding: '6px 8px', border: '1px solid #000', textAlign: 'left' }}>Kategori</th>
+                                <th style={{ width: '45%', backgroundColor: '#000000', color: '#ffffff', fontWeight: 'bold', padding: '6px 8px', border: '1px solid #000', textAlign: 'left' }}>Deskripsi</th>
+                                <th style={{ width: '20%', backgroundColor: '#000000', color: '#ffffff', fontWeight: 'bold', padding: '6px 8px', border: '1px solid #000', textAlign: 'right' }}>Nominal (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredTransactions.length === 0 ? (
+                                <tr>
+                                    <td colSpan="4" style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'center' }}>Tidak ada transaksi</td>
+                                </tr>
+                            ) : (
+                                filteredTransactions.map((tx, index) => {
+                                    const isNegative = tx.amount < 0;
+                                    const sign = isNegative ? '-' : '+';
+                                    const color = isNegative ? '#dc2626' : '#16a34a'; 
+                                    const amountText = `${sign} ${Math.abs(tx.amount).toLocaleString('id-ID')}`;
+                                    
+                                    const bgColor = index % 2 !== 0 ? '#f9f9f9' : '#ffffff';
+
+                                    return (
+                                        <tr key={tx.id} style={{ backgroundColor: bgColor }}>
+                                            <td style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'center' }}>{tx.date}</td>
+                                            <td style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'left' }}>{tx.category}</td>
+                                            <td style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'left' }}>{tx.description}</td>
+                                            <td style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'right', color: color }}>{amountText}</td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                            
+                            {/* Summary Footer di Tabel */}
+                            <tr>
+                                <td colSpan="3" style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'left', fontWeight: 'bold' }}>
+                                    Total Perubahan Bulan Ini:
+                                </td>
+                                <td style={{ padding: '6px 8px', border: '1px solid #000', textAlign: 'right', fontWeight: 'bold', color: totalPerubahan < 0 ? '#dc2626' : '#16a34a' }}>
+                                    {totalPerubahan < 0 ? '-' : '+'} {Math.abs(totalPerubahan).toLocaleString('id-ID')}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" style={{ padding: '8px 8px', border: '1px solid #000', textAlign: 'left', fontWeight: 'bold', fontSize: '11pt' }}>
+                                    SALDO AKHIR:
+                                </td>
+                                <td style={{ padding: '8px 8px', border: '1px solid #000', textAlign: 'right', fontWeight: 'bold', fontSize: '11pt' }}>
+                                    Rp {saldoAkhir.toLocaleString('id-ID')}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     );
 }

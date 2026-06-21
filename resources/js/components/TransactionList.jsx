@@ -21,7 +21,7 @@ const DEFAULT_ICON = {
  *
  * @param {Array} transactions - Array of { id, name, amount, date, category }
  */
-export default function TransactionList({ transactions }) {
+export default function TransactionList({ transactions, onNavigate }) {
     return (
         <div
             className="rounded-2xl p-5 h-full"
@@ -42,6 +42,7 @@ export default function TransactionList({ transactions }) {
                     style={{ color: 'var(--accent)' }}
                     onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-hover)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'var(--accent)'}
+                    onClick={() => onNavigate && onNavigate('transaksi')}
                 >
                     Lihat semua
                 </button>

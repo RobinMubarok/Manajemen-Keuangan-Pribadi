@@ -16,11 +16,18 @@ class TransactionController extends Controller
     /**
      * Display a listing of the transactions for the authenticated user.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $transactions = Transaction::with('category')
-            ->where('user_id', auth()->id())
-            ->orderBy('transaction_date', 'desc')
+        $query = Transaction::with('category')
+            ->where('user_id', auth()->id());
+
+        // Optional month/year filter (used by LaporanPage)
+        if ($request->filled('month') && $request->filled('year')) {
+            $query->whereMonth('transaction_date', (int) $request->month)
+                ->whereYear('transaction_date', (int) $request->year);
+        }
+
+        $transactions = $query->orderBy('transaction_date', 'desc')
             ->get()
             ->map(function (Transaction $t) {
                 // Determine display type and signed amount

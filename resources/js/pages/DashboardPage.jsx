@@ -24,7 +24,7 @@ function formatRupiah(amount) {
  * @param {Array}    notifications - Notifikasi aktif dari App.jsx
  * @param {Function} onMarkRead    - Callback untuk menandai dibaca
  */
-export default function DashboardPage({ notifications, onMarkRead }) {
+export default function DashboardPage({ notifications, onMarkRead, onNavigate }) {
     const [dashboardData, setDashboardData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -106,9 +106,11 @@ export default function DashboardPage({ notifications, onMarkRead }) {
                     <SpendingDonutChart
                         data={dashboardData?.spendingData ?? []}
                         total={donutTotal}
+                        budgetTotal={dashboardData?.dailyBudgetTotal ?? 0}
                     />
                     <TransactionList
                         transactions={dashboardData?.recentTransactions ?? []}
+                        onNavigate={onNavigate}
                     />
                 </div>
             </section>

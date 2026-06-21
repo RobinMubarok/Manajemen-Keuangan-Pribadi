@@ -50,10 +50,19 @@ class DashboardController extends Controller
             ->whereHas('category', fn ($q) => $q->where('type', 'pengeluaran'))
             ->get()
             ->groupBy(fn ($t) => $t->category->name)
-            ->map(fn ($group) => $group->sum('amount'))
-            ->sortDesc()
+            ->map(function ($group) {
+                return [
+                    'amount' => $group->sum('amount'),
+                    'color' => $group->first()->category->color,
+                ];
+            })
+            ->sortByDesc('amount')
             ->take(5)
-            ->map(fn ($total, $name) => ['name' => $name, 'value' => (int) $total])
+            ->map(fn ($data, $name) => [
+                'name' => $name,
+                'value' => (int) $data['amount'],
+                'color' => $data['color'],
+            ])
             ->values();
 
         // ── 5 most recent transactions ──────────────────────────────────

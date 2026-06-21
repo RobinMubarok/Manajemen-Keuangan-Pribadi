@@ -198,12 +198,6 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                             >
                                 {userProfile?.firstName || 'User'} {userProfile?.lastName || ''}
                             </p>
-                            <p
-                                className="text-xs truncate"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Administrator
-                            </p>
                         </div>
                     </button>
 

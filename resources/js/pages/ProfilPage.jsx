@@ -7,12 +7,19 @@ export default function ProfilPage({ userProfile, onUpdateProfile }) {
         lastName: 'Burke',
         email: 'example@mail.com',
         dobDay: '10',
-        dobMonth: 'June',
+        dobMonth: '06',
         dobYear: '1990',
         gender: 'Female',
         photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=260&h=260' // Menggunakan gambar dummy mirip referensi
     });
 
+    React.useEffect(() => {
+        if (userProfile && userProfile.email) {
+            setFormData(userProfile);
+        }
+    }, [userProfile]);
+
+    const [selectedPhoto, setSelectedPhoto] = useState(null);
     const fileInputRef = useRef(null);
 
     const handleChange = (e) => {
@@ -23,6 +30,7 @@ export default function ProfilPage({ userProfile, onUpdateProfile }) {
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            setSelectedPhoto(file);
             const imageUrl = URL.createObjectURL(file);
             setFormData(prev => ({ ...prev, photo: imageUrl }));
         }
@@ -31,14 +39,20 @@ export default function ProfilPage({ userProfile, onUpdateProfile }) {
     const handleUpdate = (e) => {
         e.preventDefault();
         if (onUpdateProfile) {
-            onUpdateProfile(formData);
+            onUpdateProfile(formData, selectedPhoto);
         }
         alert('Profil berhasil di-update!');
     };
 
-    // Helper arrays for DOB
-    const days = Array.from({length: 31}, (_, i) => i + 1);
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const days = Array.from({length: 31}, (_, i) => String(i + 1).padStart(2, '0'));
+    const months = [
+        { label: 'January', value: '01' }, { label: 'February', value: '02' }, 
+        { label: 'March', value: '03' }, { label: 'April', value: '04' },
+        { label: 'May', value: '05' }, { label: 'June', value: '06' },
+        { label: 'July', value: '07' }, { label: 'August', value: '08' },
+        { label: 'September', value: '09' }, { label: 'October', value: '10' },
+        { label: 'November', value: '11' }, { label: 'December', value: '12' }
+    ];
     const years = Array.from({length: 100}, (_, i) => new Date().getFullYear() - i);
 
     return (
@@ -219,7 +233,7 @@ export default function ProfilPage({ userProfile, onUpdateProfile }) {
                                         }}
                                     >
                                         <option value="" disabled>Month</option>
-                                        {months.map(m => <option key={m} value={m}>{m}</option>)}
+                                        {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                                     </select>
 
                                     <select 
@@ -272,7 +286,6 @@ export default function ProfilPage({ userProfile, onUpdateProfile }) {
                                     <option value="" disabled>Select Gender</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
                                 </select>
                             </div>
 

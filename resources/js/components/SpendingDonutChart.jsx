@@ -29,7 +29,7 @@ function CustomTooltip({ active, payload }) {
                     {name}
                 </p>
                 <p className="font-bold" style={{ color: 'var(--accent)' }}>
-                    {value}%
+                    Rp {value.toLocaleString('id-ID')}
                 </p>
             </div>
         );
@@ -40,31 +40,51 @@ function CustomTooltip({ active, payload }) {
 /**
  * Legend custom di sebelah kanan donut chart.
  */
-function CustomLegend({ data }) {
+function CustomLegend({ data, budgetTotal }) {
+    // Calculate total for percentage based on budgetTotal (if provided and greater than actual spending)
+    const actualSpending = data.reduce((sum, item) => sum + item.value, 0);
+    const totalValue = budgetTotal > actualSpending ? budgetTotal : actualSpending;
+
+    // Append "Sisa Budget" if applicable
+    const displayData = [...data];
+    if (budgetTotal > actualSpending) {
+        displayData.push({
+            name: 'Sisa Budget',
+            value: budgetTotal - actualSpending,
+            color: 'var(--bg-hover)', // muted color for unused budget
+            isSisa: true
+        });
+    }
+
     return (
         <ul className="space-y-2">
-            {data.map((entry, index) => (
-                <li key={entry.name} className="flex items-center justify-between gap-3 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
+            {displayData.map((entry, index) => {
+                const color = entry.color || COLORS[index % COLORS.length];
+                const percentage = totalValue > 0 ? ((entry.value / totalValue) * 100).toFixed(2) : '0.00';
+                
+                return (
+                    <li key={entry.name} className="flex items-center justify-between gap-3 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span
+                                className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: color }}
+                            />
+                            <span
+                                className="text-xs truncate"
+                                style={{ color: entry.isSisa ? 'var(--text-muted)' : 'var(--text-body)' }}
+                            >
+                                {entry.name}
+                            </span>
+                        </div>
                         <span
-                            className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <span
-                            className="text-xs truncate"
-                            style={{ color: 'var(--text-body)' }}
+                            className="text-xs font-semibold flex-shrink-0"
+                            style={{ color: entry.isSisa ? 'var(--text-muted)' : 'var(--text-primary)' }}
                         >
-                            {entry.name}
+                            {percentage}%
                         </span>
-                    </div>
-                    <span
-                        className="text-xs font-semibold flex-shrink-0"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        {entry.value}%
-                    </span>
-                </li>
-            ))}
+                    </li>
+                );
+            })}
         </ul>
     );
 }
@@ -74,10 +94,22 @@ function CustomLegend({ data }) {
  *
  * Donut chart analisis pengeluaran per kategori menggunakan Recharts.
  *
- * @param {Array}  data  - Array of { name: string, value: number }
- * @param {string} total - Label total di tengah donut (e.g. "Rp 5,8jt")
+ * @param {Array}  data        - Array of { name: string, value: number, color: string }
+ * @param {string} total       - Label total di tengah donut (e.g. "Rp 5,8jt")
+ * @param {number} budgetTotal - Opsional. Total budget untuk proporsi chart.
  */
-export default function SpendingDonutChart({ data, total }) {
+export default function SpendingDonutChart({ data, total, budgetTotal = 0 }) {
+    // Siapkan data chart dengan Sisa Budget
+    const actualSpending = data.reduce((sum, item) => sum + item.value, 0);
+    const chartData = [...data];
+    if (budgetTotal > actualSpending) {
+        chartData.push({
+            name: 'Sisa Budget',
+            value: budgetTotal - actualSpending,
+            color: 'var(--bg-hover)', // warna transparan untuk sisa budget
+        });
+    }
+
     return (
         <div
             className="rounded-2xl p-5 h-full"
@@ -99,7 +131,7 @@ export default function SpendingDonutChart({ data, total }) {
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
-                                data={data}
+                                data={chartData}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={42}
@@ -108,11 +140,12 @@ export default function SpendingDonutChart({ data, total }) {
                                 dataKey="value"
                                 startAngle={90}
                                 endAngle={-270}
+                                stroke="none"
                             >
-                                {data.map((_, index) => (
+                                {chartData.map((entry, index) => (
                                     <Cell
                                         key={`cell-${index}`}
-                                        fill={COLORS[index % COLORS.length]}
+                                        fill={entry.color || COLORS[index % COLORS.length]}
                                         stroke="none"
                                     />
                                 ))}
@@ -142,7 +175,7 @@ export default function SpendingDonutChart({ data, total }) {
 
                 {/* Legend */}
                 <div className="flex-1 min-w-0">
-                    <CustomLegend data={data} />
+                    <CustomLegend data={data} budgetTotal={budgetTotal} />
                 </div>
             </div>
         </div>

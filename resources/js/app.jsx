@@ -110,6 +110,26 @@ export default function App() {
             })
             .then((data) => setBudgetData(data))
             .catch((err) => console.error('Error fetching budget:', err));
+
+        fetch('/api/user', { headers })
+            .then((res) => {
+                if (!res.ok) { throw new Error('Unauthenticated'); }
+                return res.json();
+            })
+            .then((data) => {
+                setUserProfile({
+                    firstName: data.first_name || data.name?.split(' ')[0] || '',
+                    lastName: data.last_name || data.name?.split(' ').slice(1).join(' ') || '',
+                    email: data.email,
+                    dobYear: data.dob ? data.dob.split('-')[0] : '',
+                    dobMonth: data.dob ? data.dob.split('-')[1] : '',
+                    dobDay: data.dob ? data.dob.split('-')[2] : '',
+                    gender: data.gender || '',
+                    photo: data.photo_url || null,
+                });
+                localStorage.setItem('auth_user', JSON.stringify(data));
+            })
+            .catch((err) => console.error('Error fetching user profile:', err));
     }, []);
 
     useEffect(() => {
@@ -130,14 +150,14 @@ export default function App() {
         if (stored) {
             const user = JSON.parse(stored);
             setUserProfile({
-                firstName: user.name?.split(' ')[0] || user.name,
-                lastName: user.name?.split(' ').slice(1).join(' ') || '',
+                firstName: user.first_name || user.name?.split(' ')[0] || user.name,
+                lastName: user.last_name || user.name?.split(' ').slice(1).join(' ') || '',
                 email: user.email,
-                dobDay: '',
-                dobMonth: '',
-                dobYear: '',
-                gender: '',
-                photo: null,
+                dobYear: user.dob ? user.dob.split('-')[0] : '',
+                dobMonth: user.dob ? user.dob.split('-')[1] : '',
+                dobDay: user.dob ? user.dob.split('-')[2] : '',
+                gender: user.gender || '',
+                photo: user.photo_url || null,
             });
         }
         setCurrentPage(page || 'dashboard');
@@ -297,6 +317,56 @@ export default function App() {
         setBudgetData(saved);
     };
 
+    /* ─────────────── PROFILE HANDLERS ─────────────── */
+
+    const handleUpdateProfile = async (formData, photoFile) => {
+        let dob = null;
+        if (formData.dobYear && formData.dobMonth && formData.dobDay) {
+            dob = `${formData.dobYear}-${formData.dobMonth}-${formData.dobDay}`;
+        }
+        
+        const payload = new FormData();
+        payload.append('first_name', formData.firstName || '');
+        payload.append('last_name', formData.lastName || '');
+        payload.append('email', formData.email || '');
+        if (dob) payload.append('dob', dob);
+        payload.append('gender', formData.gender || '');
+        if (photoFile) {
+            payload.append('photo', photoFile);
+        }
+        
+        try {
+            const token = localStorage.getItem('auth_token');
+            const res = await fetch('/api/profile', {
+                method: 'POST', // POST with FormData for file upload
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: payload,
+            });
+            
+            if (!res.ok) throw new Error('Gagal update profil');
+            const data = await res.json();
+            
+            const newUserProfile = {
+                ...formData,
+                firstName: data.first_name || '',
+                lastName: data.last_name || '',
+                email: data.email,
+                dobYear: data.dob ? data.dob.split('-')[0] : '',
+                dobMonth: data.dob ? data.dob.split('-')[1] : '',
+                dobDay: data.dob ? data.dob.split('-')[2] : '',
+                gender: data.gender || '',
+                photo: data.photo_url || formData.photo,
+            };
+            setUserProfile(newUserProfile);
+            localStorage.setItem('auth_user', JSON.stringify(data));
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     /* ─────────────── RENDER ─────────────── */
 
     const renderPage = () => {
@@ -306,6 +376,7 @@ export default function App() {
                     <DashboardPage
                         notifications={notifications}
                         onMarkRead={handleMarkRead}
+                        onNavigate={setCurrentPage}
                     />
                 );
             case 'transaksi':
@@ -355,12 +426,13 @@ export default function App() {
                     />
                 );
             case 'profil':
-                return <ProfilPage userProfile={userProfile} onUpdateProfile={setUserProfile} />;
+                return <ProfilPage userProfile={userProfile} onUpdateProfile={handleUpdateProfile} />;
             default:
                 return (
                     <DashboardPage
                         notifications={notifications}
                         onMarkRead={handleMarkRead}
+                        onNavigate={setCurrentPage}
                     />
                 );
         }

@@ -27,9 +27,18 @@ export default function LaporanPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch transactions from backend API on component mount
+    // Fetch transactions from backend API whenever month/year filter changes
     useEffect(() => {
-        fetch('/api/transactions')
+        const token = localStorage.getItem('auth_token');
+        setLoading(true);
+        setError(null);
+        fetch(`/api/transactions?month=${selectedMonth}&year=${selectedYear}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        })
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -45,13 +54,10 @@ export default function LaporanPage() {
                 setError(err.message);
                 setLoading(false);
             });
-    }, []);
+    }, [selectedMonth, selectedYear]);
 
-    // Filter transactions based on selected month and year
-    const filteredTransactions = transactions.filter(tx => {
-        const [day, month, year] = tx.date.split('/');
-        return month === selectedMonth && year === selectedYear;
-    });
+    // Transactions are already filtered by month/year from the API
+    const filteredTransactions = transactions;
 
     // Hitung total pemasukan dan pengeluaran secara dinamis
     const totalPemasukan = filteredTransactions
@@ -240,10 +246,6 @@ export default function LaporanPage() {
                     >
                         {formatRupiah(totalPemasukan)}
                     </p>
-                    <div
-                        className="absolute right-4 bottom-4 w-12 h-12 rounded-full opacity-10 flex items-center justify-center pointer-events-none"
-                        style={{ backgroundColor: 'var(--accent)' }}
-                    />
                 </div>
 
                 {/* Total Pengeluaran */}
@@ -266,10 +268,6 @@ export default function LaporanPage() {
                     >
                         {formatRupiah(totalPengeluaran)}
                     </p>
-                    <div
-                        className="absolute right-4 bottom-4 w-12 h-12 rounded-full opacity-10 flex items-center justify-center pointer-events-none"
-                        style={{ backgroundColor: 'var(--negative)' }}
-                    />
                 </div>
             </div>
 

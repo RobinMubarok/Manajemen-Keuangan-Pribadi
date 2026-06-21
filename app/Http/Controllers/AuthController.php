@@ -71,6 +71,11 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'dob' => $user->dob,
+                'gender' => $user->gender,
+                'photo_url' => $user->photo_url,
             ],
             'token' => $token,
         ]);
@@ -91,10 +96,58 @@ class AuthController extends Controller
      */
     public function user(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         return response()->json([
-            'id' => $request->user()->id,
-            'name' => $request->user()->name,
-            'email' => $request->user()->email,
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'dob' => $user->dob,
+            'gender' => $user->gender,
+            'photo_url' => $user->photo_url,
+        ]);
+    }
+
+    /**
+     * Update user profile settings.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'dob' => ['nullable', 'date'],
+            'gender' => ['nullable', 'string', 'in:Male,Female'],
+            'photo' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $user = $request->user();
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('profiles', 'public');
+            $user->photo_url = '/storage/' . $path;
+        }
+
+        $user->first_name = $validated['first_name'] ?? null;
+        $user->last_name = $validated['last_name'] ?? null;
+        $user->email = $validated['email'] ?? $user->email;
+        $user->dob = $validated['dob'] ?? null;
+        $user->gender = $validated['gender'] ?? null;
+        
+        $user->save();
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'dob' => $user->dob,
+            'gender' => $user->gender,
+            'photo_url' => $user->photo_url,
         ]);
     }
 }

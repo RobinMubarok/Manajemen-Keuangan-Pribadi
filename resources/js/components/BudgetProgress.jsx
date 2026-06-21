@@ -11,7 +11,7 @@ import { AlertTriangle } from 'lucide-react';
  * @param {string} label  - Label di kiri (default: "Pengeluaran budget harian")
  */
 export default function BudgetProgress({ used, total, label = 'Pengeluaran budget harian' }) {
-    const percent = Math.min((used / total) * 100, 100);
+    const percent = total > 0 ? Math.min((used / total) * 100, 100) : 0;
     const isWarning = percent >= 70;
     const isDanger = percent >= 90;
 

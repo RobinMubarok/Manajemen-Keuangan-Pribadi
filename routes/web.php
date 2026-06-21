@@ -5,6 +5,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,9 @@ Route::prefix('api')->middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/profile', [AuthController::class, 'updateProfile']);
+    Route::get('/user/profile', [ProfileController::class, 'show']);
+    Route::put('/user/profile', [ProfileController::class, 'update']);
+    Route::post('/user/profile/photo', [ProfileController::class, 'updatePhoto']);
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);

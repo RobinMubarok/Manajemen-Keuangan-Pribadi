@@ -73,7 +73,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
-                'dob' => $user->dob,
+                'date_of_birth' => $user->date_of_birth,
                 'gender' => $user->gender,
                 'photo_url' => $user->photo_url,
             ],
@@ -104,7 +104,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
-            'dob' => $user->dob,
+            'date_of_birth' => $user->date_of_birth,
             'gender' => $user->gender,
             'photo_url' => $user->photo_url,
         ]);
@@ -119,7 +119,7 @@ class AuthController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
-            'dob' => ['nullable', 'date'],
+            'date_of_birth' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'in:Male,Female'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ]);
@@ -134,9 +134,9 @@ class AuthController extends Controller
         $user->first_name = $validated['first_name'] ?? null;
         $user->last_name = $validated['last_name'] ?? null;
         $user->email = $validated['email'] ?? $user->email;
-        $user->dob = $validated['dob'] ?? null;
+        $user->date_of_birth = $validated['date_of_birth'] ?? null;
         $user->gender = $validated['gender'] ?? null;
-        
+
         $user->save();
 
         return response()->json([
@@ -145,7 +145,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
-            'dob' => $user->dob,
+            'date_of_birth' => $user->date_of_birth,
             'gender' => $user->gender,
             'photo_url' => $user->photo_url,
         ]);

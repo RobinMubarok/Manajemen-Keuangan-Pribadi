@@ -37,13 +37,19 @@ export default function DashboardPage({ notifications, onMarkRead, onNavigate })
             },
         })
             .then((res) => {
+                if (res.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('auth_user');
+                    if (onNavigate) onNavigate('auth');
+                    throw new Error('Unauthenticated');
+                }
                 if (!res.ok) { throw new Error('Failed to load dashboard'); }
                 return res.json();
             })
             .then((data) => setDashboardData(data))
             .catch((err) => console.error('Error fetching dashboard:', err))
             .finally(() => setIsLoading(false));
-    }, []);
+    }, [onNavigate]);
 
     // Compute donut total label from spending data
     const donutTotal = dashboardData?.spendingData?.length

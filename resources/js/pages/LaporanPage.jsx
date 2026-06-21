@@ -19,7 +19,7 @@ const MONTHS = [
 
 const YEARS = ['2024', '2025', '2026', '2027'];
 
-export default function LaporanPage() {
+export default function LaporanPage({ onNavigate }) {
     const currentDate = new Date();
     const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
     const currentYearStr = String(currentDate.getFullYear());
@@ -48,6 +48,12 @@ export default function LaporanPage() {
             },
         })
             .then((response) => {
+                if (response.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('auth_user');
+                    if (onNavigate) onNavigate('auth');
+                    throw new Error('Unauthenticated');
+                }
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
@@ -60,7 +66,7 @@ export default function LaporanPage() {
                 setError(err.message);
                 setLoading(false);
             });
-    }, [selectedMonth, selectedYear]);
+    }, [selectedMonth, selectedYear, onNavigate]);
 
     const filteredTransactions = transactions;
 

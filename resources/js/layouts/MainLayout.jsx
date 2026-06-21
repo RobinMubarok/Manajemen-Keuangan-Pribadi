@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
+import BudgetAlertBanner from '../components/BudgetAlertBanner';
 import { Menu, Bell, Info, AlertCircle, Check, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 
 const PAGE_TITLES = {
@@ -51,9 +53,12 @@ export default function MainLayout({
     notifications = [], 
     onMarkAllRead, 
     onMarkRead,
-    userProfile,
-    onLogout
+    // removed userProfile prop, will use AuthContext instead
+    onLogout,
+    budgetData,
+    transactions = []
 }) {
+    const { user } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [notifOpen, setNotifOpen] = useState(false);
     const notifRef = useRef(null);
@@ -80,6 +85,28 @@ export default function MainLayout({
 
     const unreadCount = notifications.filter(n => !n.read).length;
     const pageTitle = PAGE_TITLES[currentPage] || 'Money Manager';
+
+    // Calculate monthly income and spend from transactions for budget alert
+    const now = new Date();
+    const currentMonthTransactions = transactions.filter(tx => {
+        if (!tx.date) return false;
+        // Parse date format DD/MM/YYYY
+        const parts = tx.date.split('/');
+        if (parts.length !== 3) return false;
+        const txMonth = parseInt(parts[1], 10);
+        const txYear = parseInt(parts[2], 10);
+        return txMonth === (now.getMonth() + 1) && txYear === now.getFullYear();
+    });
+
+    const totalIncomeThisMonth = currentMonthTransactions
+        .filter(tx => tx.amount > 0 || tx.type === 'Pemasukan')
+        .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
+    const totalSpentThisMonth = currentMonthTransactions
+        .filter(tx => tx.amount < 0 || tx.type === 'Pengeluaran')
+        .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
+    const monthlyBudget = totalIncomeThisMonth;
 
     return (
         <div
@@ -108,7 +135,7 @@ export default function MainLayout({
                 isOpen={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
                 unreadCount={unreadCount}
-                userProfile={userProfile}
+                userProfile={user}
                 onLogout={onLogout}
             />
 
@@ -303,6 +330,12 @@ export default function MainLayout({
                     className="flex-1 overflow-y-auto"
                     style={{ backgroundColor: 'var(--bg-primary)' }}
                 >
+                    {/* ── Budget Alert Banner ── */}
+                    <BudgetAlertBanner
+                        totalSpent={totalSpentThisMonth}
+                        totalBudget={monthlyBudget}
+                        onNavigate={onNavigate}
+                    />
                     {children}
                 </main>
             </div>

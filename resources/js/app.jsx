@@ -9,6 +9,7 @@ import AturBudgetPage from './pages/AturBudgetPage';
 import LaporanPage from './pages/LaporanPage';
 import AuthPage from './pages/AuthPage';
 import ProfilPage from './pages/ProfilPage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 /**
  * Helper: return Authorization headers from localStorage token.
@@ -33,44 +34,23 @@ function authHeaders() {
  * All API calls include Bearer token via authHeaders().
  */
 export default function App() {
-    // Determine initial page based on whether a token is already stored
-    const hasToken = Boolean(localStorage.getItem('auth_token'));
-    const [currentPage, setCurrentPage] = useState(hasToken ? 'dashboard' : 'auth');
+    const { user, loading, logout, refreshUser } = useAuth();
+    const [currentPage, setCurrentPage] = useState('dashboard');
 
     const [notifications, setNotifications] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState([]);
     const [budgetData, setBudgetData] = useState(null);
 
-    const [userProfile, setUserProfile] = useState(() => {
-        const stored = localStorage.getItem('auth_user');
-        if (stored) {
-            const user = JSON.parse(stored);
-            return {
-                firstName: user.name?.split(' ')[0] || user.name,
-                lastName: user.name?.split(' ').slice(1).join(' ') || '',
-                email: user.email,
-                dobDay: '',
-                dobMonth: '',
-                dobYear: '',
-                gender: '',
-                photo: null,
-            };
-        }
-        return {
-            firstName: '',
-            lastName: '',
-            email: '',
-            dobDay: '',
-            dobMonth: '',
-            dobYear: '',
-            gender: '',
-            photo: null,
-        };
-    });
-
     // State untuk menyimpan transaksi yang sedang di-edit
     const [editingTransaction, setEditingTransaction] = useState(null);
+
+    /**
+     * Centralized function to handle authentication failure (e.g. invalid/expired token).
+     */
+    const handleAuthFailure = useCallback(() => {
+        logout();
+    }, [logout]);
 
     /**
      * Fetch semua data awal dari API setelah login.
@@ -81,7 +61,11 @@ export default function App() {
 
         fetch('/api/notifications', { headers })
             .then((res) => {
-                if (!res.ok) { throw new Error('Unauthenticated'); }
+                if (res.status === 401) {
+                    handleAuthFailure();
+                    throw new Error('Unauthenticated');
+                }
+                if (!res.ok) { throw new Error('Failed to fetch notifications'); }
                 return res.json();
             })
             .then((data) => setNotifications(data))
@@ -89,7 +73,11 @@ export default function App() {
 
         fetch('/api/transactions', { headers })
             .then((res) => {
-                if (!res.ok) { throw new Error('Unauthenticated'); }
+                if (res.status === 401) {
+                    handleAuthFailure();
+                    throw new Error('Unauthenticated');
+                }
+                if (!res.ok) { throw new Error('Failed to fetch transactions'); }
                 return res.json();
             })
             .then((data) => setTransactions(data))
@@ -97,7 +85,11 @@ export default function App() {
 
         fetch('/api/categories', { headers })
             .then((res) => {
-                if (!res.ok) { throw new Error('Unauthenticated'); }
+                if (res.status === 401) {
+                    handleAuthFailure();
+                    throw new Error('Unauthenticated');
+                }
+                if (!res.ok) { throw new Error('Failed to fetch categories'); }
                 return res.json();
             })
             .then((data) => setCategories(data))
@@ -105,38 +97,34 @@ export default function App() {
 
         fetch('/api/budget', { headers })
             .then((res) => {
-                if (!res.ok) { throw new Error('Unauthenticated'); }
+                if (res.status === 401) {
+                    handleAuthFailure();
+                    throw new Error('Unauthenticated');
+                }
+                if (!res.ok) { throw new Error('Failed to fetch budget'); }
                 return res.json();
             })
             .then((data) => setBudgetData(data))
             .catch((err) => console.error('Error fetching budget:', err));
+    }, [handleAuthFailure]);
 
-        fetch('/api/user', { headers })
-            .then((res) => {
-                if (!res.ok) { throw new Error('Unauthenticated'); }
-                return res.json();
-            })
-            .then((data) => {
-                setUserProfile({
-                    firstName: data.first_name || data.name?.split(' ')[0] || '',
-                    lastName: data.last_name || data.name?.split(' ').slice(1).join(' ') || '',
-                    email: data.email,
-                    dobYear: data.dob ? data.dob.split('-')[0] : '',
-                    dobMonth: data.dob ? data.dob.split('-')[1] : '',
-                    dobDay: data.dob ? data.dob.split('-')[2] : '',
-                    gender: data.gender || '',
-                    photo: data.photo_url || null,
-                });
-                localStorage.setItem('auth_user', JSON.stringify(data));
-            })
-            .catch((err) => console.error('Error fetching user profile:', err));
-    }, []);
-
+    // Track login status and dynamically set page routes
     useEffect(() => {
-        if (currentPage !== 'auth') {
+        if (!loading) {
+            if (!user) {
+                setCurrentPage('auth');
+            } else if (currentPage === 'auth') {
+                setCurrentPage('dashboard');
+            }
+        }
+    }, [user, loading, currentPage]);
+
+    // Fetch initial transactions/notifications when user is loaded
+    useEffect(() => {
+        if (user) {
             fetchInitialData();
         }
-    }, [currentPage, fetchInitialData]);
+    }, [user, fetchInitialData]);
 
     /* ─────────────── AUTH HANDLERS ─────────────── */
 
@@ -145,21 +133,7 @@ export default function App() {
      * Token sudah disimpan ke localStorage oleh AuthPage.
      */
     const handleLogin = (page) => {
-        // Refresh user profile from localStorage after login
-        const stored = localStorage.getItem('auth_user');
-        if (stored) {
-            const user = JSON.parse(stored);
-            setUserProfile({
-                firstName: user.first_name || user.name?.split(' ')[0] || user.name,
-                lastName: user.last_name || user.name?.split(' ').slice(1).join(' ') || '',
-                email: user.email,
-                dobYear: user.dob ? user.dob.split('-')[0] : '',
-                dobMonth: user.dob ? user.dob.split('-')[1] : '',
-                dobDay: user.dob ? user.dob.split('-')[2] : '',
-                gender: user.gender || '',
-                photo: user.photo_url || null,
-            });
-        }
+        refreshUser();
         setCurrentPage(page || 'dashboard');
     };
 
@@ -167,12 +141,7 @@ export default function App() {
      * Logout: hapus token, kembali ke halaman auth.
      */
     const handleLogout = () => {
-        fetch('/api/logout', {
-            method: 'POST',
-            headers: authHeaders(),
-        }).finally(() => {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_user');
+        logout().finally(() => {
             setNotifications([]);
             setTransactions([]);
             setCategories([]);
@@ -319,53 +288,7 @@ export default function App() {
 
     /* ─────────────── PROFILE HANDLERS ─────────────── */
 
-    const handleUpdateProfile = async (formData, photoFile) => {
-        let dob = null;
-        if (formData.dobYear && formData.dobMonth && formData.dobDay) {
-            dob = `${formData.dobYear}-${formData.dobMonth}-${formData.dobDay}`;
-        }
-        
-        const payload = new FormData();
-        payload.append('first_name', formData.firstName || '');
-        payload.append('last_name', formData.lastName || '');
-        payload.append('email', formData.email || '');
-        if (dob) payload.append('dob', dob);
-        payload.append('gender', formData.gender || '');
-        if (photoFile) {
-            payload.append('photo', photoFile);
-        }
-        
-        try {
-            const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/profile', {
-                method: 'POST', // POST with FormData for file upload
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: payload,
-            });
-            
-            if (!res.ok) throw new Error('Gagal update profil');
-            const data = await res.json();
-            
-            const newUserProfile = {
-                ...formData,
-                firstName: data.first_name || '',
-                lastName: data.last_name || '',
-                email: data.email,
-                dobYear: data.dob ? data.dob.split('-')[0] : '',
-                dobMonth: data.dob ? data.dob.split('-')[1] : '',
-                dobDay: data.dob ? data.dob.split('-')[2] : '',
-                gender: data.gender || '',
-                photo: data.photo_url || formData.photo,
-            };
-            setUserProfile(newUserProfile);
-            localStorage.setItem('auth_user', JSON.stringify(data));
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    // Profile updates are handled directly inside ProfilPage.jsx using the Context API
 
     /* ─────────────── RENDER ─────────────── */
 
@@ -417,7 +340,7 @@ export default function App() {
                     />
                 );
             case 'laporan':
-                return <LaporanPage />;
+                return <LaporanPage onNavigate={setCurrentPage} />;
             case 'notifikasi':
                 return (
                     <NotifikasiPage
@@ -426,7 +349,7 @@ export default function App() {
                     />
                 );
             case 'profil':
-                return <ProfilPage userProfile={userProfile} onUpdateProfile={handleUpdateProfile} />;
+                return <ProfilPage onNavigate={setCurrentPage} />;
             default:
                 return (
                     <DashboardPage
@@ -437,6 +360,15 @@ export default function App() {
                 );
         }
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#070b09] text-white">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
+                <p className="text-emerald-400 text-sm font-medium tracking-wide">Memuat aplikasi...</p>
+            </div>
+        );
+    }
 
     if (currentPage === 'auth') {
         return <AuthPage onLogin={handleLogin} />;
@@ -449,8 +381,10 @@ export default function App() {
             notifications={notifications}
             onMarkAllRead={handleMarkAllRead}
             onMarkRead={handleMarkRead}
-            userProfile={userProfile}
             onLogout={handleLogout}
+            budgetData={budgetData}
+            transactions={transactions}
+            userProfile={user}
         >
             {renderPage()}
         </MainLayout>
@@ -463,7 +397,9 @@ if (container) {
     const root = createRoot(container);
     root.render(
         <React.StrictMode>
-            <App />
+            <AuthProvider>
+                <App />
+            </AuthProvider>
         </React.StrictMode>
     );
 }

@@ -186,17 +186,17 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                             style={{
                                 backgroundColor: 'var(--accent)',
                                 color: 'var(--text-on-accent)',
-                                backgroundImage: userProfile?.photo ? `url(${userProfile.photo})` : 'none'
+                                backgroundImage: userProfile?.photo_url ? `url(${userProfile.photo_url})` : 'none'
                             }}
                         >
-                            {!userProfile?.photo && (userProfile?.firstName?.charAt(0) || 'U')}
+                            {!userProfile?.photo_url && (userProfile?.first_name?.charAt(0) || 'U')}
                         </div>
                         <div className="min-w-0 text-left flex-1">
                             <p
                                 className="text-sm font-semibold truncate"
                                 style={{ color: 'var(--text-primary)' }}
                             >
-                                {userProfile?.firstName || 'User'} {userProfile?.lastName || ''}
+                                {userProfile?.first_name || 'User'} {userProfile?.last_name || ''}
                             </p>
                         </div>
                     </button>

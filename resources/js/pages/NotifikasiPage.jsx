@@ -8,10 +8,13 @@ import { AlertTriangle, Clock, CheckCircle, Bell } from 'lucide-react';
  * bentuk ikon square-rounded (border-radius: 10px, 40x40px), padding kartu,
  * dan jarak/spacing yang presisi sesuai instruksi.
  *
- * @param {Array}    notifications - List notifikasi dari App.jsx
- * @param {Function} onMarkRead    - Callback untuk menandai dibaca
+ * @param {Array}    notifications    - List notifikasi dari App.jsx
+ * @param {Function} onMarkRead       - Callback untuk menandai dibaca
+ * @param {Object}   dashboardSummary - Data dashboard (dailyBudgetUsed, dailyBudgetTotal)
+ * @param {Object}   budgetData       - Data budget (harian, bulanan)
+ * @param {Function} onNavigate       - Callback navigasi
  */
-export default function NotifikasiPage({ notifications = [], onMarkRead }) {
+export default function NotifikasiPage({ notifications = [], onMarkRead, dashboardSummary = null, budgetData = null, onNavigate }) {
     const unreadNotifications = notifications.filter(n => !n.read);
     const readNotifications = notifications.filter(n => n.read);
     const unreadCount = unreadNotifications.length;
@@ -24,6 +27,7 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
 
         switch (type) {
             case 'warning':
+            case 'alert':
                 bgColor = 'rgba(251, 191, 36, 0.12)';
                 strokeColor = 'var(--warning)';
                 IconComponent = AlertTriangle;
@@ -70,11 +74,12 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                 </p>
             </header>
 
+
             {/* ── SEKSI: BELUM DIBACA ── */}
             {unreadNotifications.length > 0 && (
                 <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Belum Dibaca</h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}> {/* Gap antar card: 10px */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {unreadNotifications.map((notif) => (
                             <div
                                 key={notif.id}
@@ -134,7 +139,7 @@ export default function NotifikasiPage({ notifications = [], onMarkRead }) {
                         Belum ada notifikasi yang dibaca
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}> {/* Gap antar card: 16px */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {readNotifications.map((notif) => (
                             <div
                                 key={notif.id}

@@ -57,7 +57,8 @@ export default function MainLayout({
     // removed userProfile prop, will use AuthContext instead
     onLogout,
     budgetData,
-    transactions = []
+    transactions = [],
+    dashboardSummary = null,
 }) {
     const { user } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -87,27 +88,14 @@ export default function MainLayout({
     const unreadCount = notifications.filter(n => !n.read).length;
     const pageTitle = PAGE_TITLES[currentPage] || 'Money Manager';
 
-    // Calculate monthly income and spend from transactions for budget alert
-    const now = new Date();
-    const currentMonthTransactions = transactions.filter(tx => {
-        if (!tx.date) return false;
-        // Parse date format DD/MM/YYYY
-        const parts = tx.date.split('/');
-        if (parts.length !== 3) return false;
-        const txMonth = parseInt(parts[1], 10);
-        const txYear = parseInt(parts[2], 10);
-        return txMonth === (now.getMonth() + 1) && txYear === now.getFullYear();
-    });
+    // Gunakan data dari /api/dashboard (server-side) untuk akurasi
+    // Fallback ke kalkulasi manual jika dashboardSummary belum tersedia
+    const dailyUsed = dashboardSummary?.dailyBudgetUsed ?? 0;
+    const dailyTotal = dashboardSummary?.dailyBudgetTotal ?? (budgetData?.harian ?? 0);
 
-    const totalIncomeThisMonth = currentMonthTransactions
-        .filter(tx => tx.amount > 0 || tx.type === 'Pemasukan')
-        .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
-
-    const totalSpentThisMonth = currentMonthTransactions
-        .filter(tx => tx.amount < 0 || tx.type === 'Pengeluaran')
-        .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
-
-    const monthlyBudget = totalIncomeThisMonth;
+    // Jika dailyTotal tidak ada, coba pakai monthly budget
+    const bannerSpent = dailyTotal > 0 ? dailyUsed : 0;
+    const bannerBudget = dailyTotal > 0 ? dailyTotal : (budgetData?.bulanan ?? 0);
 
     return (
         <div
@@ -353,8 +341,8 @@ export default function MainLayout({
                 >
                     {/* ── Budget Alert Banner ── */}
                     <BudgetAlertBanner
-                        totalSpent={totalSpentThisMonth}
-                        totalBudget={monthlyBudget}
+                        totalSpent={bannerSpent}
+                        totalBudget={bannerBudget}
                         onNavigate={onNavigate}
                     />
                     {children}

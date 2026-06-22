@@ -11,9 +11,10 @@ import { AlertTriangle } from 'lucide-react';
  * @param {string} label  - Label di kiri (default: "Pengeluaran budget harian")
  */
 export default function BudgetProgress({ used, total, label = 'Pengeluaran budget harian' }) {
-    const percent = total > 0 ? Math.min((used / total) * 100, 100) : 0;
-    const isWarning = percent >= 70;
-    const isDanger = percent >= 90;
+    const actualPercent = total > 0 ? (used / total) * 100 : 0;
+    const barPercent = Math.min(actualPercent, 100);
+    const isWarning = actualPercent >= 70;
+    const isDanger = actualPercent >= 90;
 
     const barColor = isDanger
         ? 'var(--negative)'
@@ -22,7 +23,7 @@ export default function BudgetProgress({ used, total, label = 'Pengeluaran budge
         : 'var(--accent)';
 
     const formatRp = (val) =>
-        'Rp ' + val.toLocaleString('id-ID');
+        'Rp ' + (val || 0).toLocaleString('id-ID');
 
     return (
         <div
@@ -65,17 +66,11 @@ export default function BudgetProgress({ used, total, label = 'Pengeluaran budge
             >
                 <div
                     className="h-full rounded-full transition-all duration-700 ease-out"
-                    style={{ width: `${percent}%`, backgroundColor: barColor }}
+                    style={{ width: `${barPercent}%`, backgroundColor: barColor }}
                 />
             </div>
 
-            <div className="flex justify-between mt-2">
-                <span
-                    className="text-xs"
-                    style={{ color: 'var(--text-disabled)' }}
-                >
-                    0%
-                </span>
+            <div className="flex justify-end mt-2">
                 <span
                     className="text-xs font-medium"
                     style={{
@@ -86,7 +81,7 @@ export default function BudgetProgress({ used, total, label = 'Pengeluaran budge
                             : 'var(--text-muted)',
                     }}
                 >
-                    {percent.toFixed(0)}% terpakai
+                    {actualPercent.toFixed(0)}% terpakai
                 </span>
             </div>
         </div>

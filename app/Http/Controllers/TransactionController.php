@@ -193,7 +193,7 @@ class TransactionController extends Controller
             $percent = ($dailyExpense / $dailyBudget->amount) * 100;
 
             if ($percent >= 100) {
-                $message = 'Budget Harian sudah melebihi batas (100% terpakai pada '.$carbonDate->format('d/m/Y').')';
+                $message = 'Budget Harian sudah melebihi batas ('.number_format($percent, 0).'% terpakai pada '.$carbonDate->format('d/m/Y').')';
                 $exists = Notification::where('user_id', $userId)
                     ->where('message', 'like', 'Budget Harian sudah melebihi batas%')
                     ->whereDate('created_at', Carbon::today())
@@ -241,7 +241,7 @@ class TransactionController extends Controller
             $monthLabel = $carbonDate->translatedFormat('F Y');
 
             if ($percentMonthly >= 100) {
-                $message = 'Budget Bulanan sudah melebihi batas (100% terpakai pada '.$monthLabel.')';
+                $message = 'Budget Bulanan sudah melebihi batas ('.number_format($percentMonthly, 0).'% terpakai pada '.$monthLabel.')';
                 $exists = Notification::where('user_id', $userId)
                     ->where('message', 'like', 'Budget Bulanan sudah melebihi batas%'.$monthLabel.'%')
                     ->exists();

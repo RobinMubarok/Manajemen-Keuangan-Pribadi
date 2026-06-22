@@ -42,6 +42,7 @@ export default function App() {
     const [categories, setCategories] = useState([]);
     const [budgetData, setBudgetData] = useState(null);
     const [isLoadingNotif, setIsLoadingNotif] = useState(false);
+    const [dashboardSummary, setDashboardSummary] = useState(null);
 
     // State untuk menyimpan transaksi yang sedang di-edit
     const [editingTransaction, setEditingTransaction] = useState(null);
@@ -113,6 +114,15 @@ export default function App() {
             })
             .then((data) => setBudgetData(data))
             .catch((err) => console.error('Error fetching budget:', err));
+
+        fetch('/api/dashboard', { headers })
+            .then((res) => {
+                if (res.status === 401) { throw new Error('Unauthenticated'); }
+                if (!res.ok) { throw new Error('Failed to fetch dashboard'); }
+                return res.json();
+            })
+            .then((data) => setDashboardSummary(data))
+            .catch((err) => console.error('Error fetching dashboard summary:', err));
     }, [handleAuthFailure]);
 
     // Track login status and dynamically set page routes
@@ -132,6 +142,64 @@ export default function App() {
             fetchInitialData();
         }
     }, [user, fetchInitialData]);
+
+    /**
+     * Auto-create notifikasi budget harian saat dashboardSummary tersedia.
+     * Dipanggil setiap kali dashboardSummary atau budgetData berubah.
+     * Throttle: max 1 per hari per threshold (via localStorage).
+     */
+    useEffect(() => {
+        if (!dashboardSummary || !budgetData || !user) return;
+
+        const dailyUsed  = dashboardSummary.dailyBudgetUsed  ?? 0;
+        const dailyTotal = dashboardSummary.dailyBudgetTotal ?? (budgetData.harian ?? 0);
+        if (dailyTotal <= 0) return;
+
+        const dailyPct = (dailyUsed / dailyTotal) * 100;
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const sentKey = `budget_daily_alert_${today}`;
+        const alreadySent = localStorage.getItem(sentKey) || '';
+
+        const sendNotif = async (title, message, level) => {
+            if (alreadySent.includes(level)) return;
+            try {
+                const res = await fetch('/api/notifications', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ title, message, type: 'warning' }),
+                });
+                if (res.ok) {
+                    const newNotif = await res.json();
+                    setNotifications((prev) => {
+                        // Hindari duplikat di state
+                        if (prev.some((n) => n.id === newNotif.id)) return prev;
+                        return [newNotif, ...prev];
+                    });
+                    localStorage.setItem(sentKey, alreadySent + level);
+                }
+            } catch (err) {
+                console.error('Error sending budget notif:', err);
+            }
+        };
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const pct = Math.round(dailyPct);
+
+        if (dailyPct >= 100) {
+            sendNotif(
+                'Peringatan Budget',
+                `Budget Harian sudah melebihi batas (${pct}% terpakai pada ${dateStr})`,
+                'exceeded'
+            );
+        } else if (dailyPct >= 80) {
+            sendNotif(
+                'Peringatan Budget',
+                `Budget Harian hampir habis (${pct}% terpakai pada ${dateStr})`,
+                'near'
+            );
+        }
+    }, [dashboardSummary, budgetData, user]);
 
     /* ─────────────── AUTH HANDLERS ─────────────── */
 
@@ -222,6 +290,16 @@ export default function App() {
      *
      * @param {Object} transaction - Data transaksi tanpa id
      */
+    const refreshDashboardSummary = useCallback(() => {
+        fetch('/api/dashboard', { headers: authHeaders() })
+            .then((res) => {
+                if (!res.ok) throw new Error('Failed to refresh dashboard');
+                return res.json();
+            })
+            .then((data) => setDashboardSummary(data))
+            .catch((err) => console.error('Error refreshing dashboard summary:', err));
+    }, []);
+
     const handleAddTransaction = async (transaction) => {
         try {
             const res = await fetch('/api/transactions', {
@@ -233,6 +311,9 @@ export default function App() {
             const updatedTransactions = [newTx, ...transactions];
             setTransactions(updatedTransactions);
             
+            // Refresh dashboard summary agar dailyBudgetUsed terupdate
+            refreshDashboardSummary();
+
             // Cek budget alert setelah transaksi baru ditambahkan
             if (budgetData) {
                 await checkBudgetAlerts(budgetData, updatedTransactions);
@@ -502,6 +583,9 @@ export default function App() {
                     <NotifikasiPage
                         notifications={notifications}
                         onMarkRead={handleMarkRead}
+                        dashboardSummary={dashboardSummary}
+                        budgetData={budgetData}
+                        onNavigate={setCurrentPage}
                     />
                 );
             case 'profil':
@@ -542,6 +626,7 @@ export default function App() {
             budgetData={budgetData}
             transactions={transactions}
             userProfile={user}
+            dashboardSummary={dashboardSummary}
         >
             {renderPage()}
         </MainLayout>

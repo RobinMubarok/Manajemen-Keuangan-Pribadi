@@ -87,13 +87,16 @@ export default function BudgetAlertBanner({ totalSpent, totalBudget, onNavigate 
                             className="text-sm font-bold"
                             style={{ color: isOver100 ? 'var(--negative)' : 'var(--warning)' }}
                         >
-                            ⚠️ PERINGATAN: Budget Anda {isOver100 ? 'sudah melebihi batas!' : 'hampir habis!'}
+                            Peringatan Budget
                         </p>
                         <p
                             className="text-xs mt-1"
                             style={{ color: 'var(--text-body)' }}
                         >
-                            Anda telah menggunakan <strong style={{ color: 'var(--text-primary)' }}>{percentage}%</strong> dari total budget bulanan.
+                            {isOver100
+                                ? `Budget Harian sudah melebihi batas (${percentage}% terpakai)`
+                                : `Budget Harian hampir habis (${percentage}% terpakai)`
+                            }
                         </p>
                         <p
                             className="text-xs mt-0.5"

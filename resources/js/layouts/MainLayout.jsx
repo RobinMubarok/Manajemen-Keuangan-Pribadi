@@ -344,6 +344,8 @@ export default function MainLayout({
                         totalSpent={bannerSpent}
                         totalBudget={bannerBudget}
                         onNavigate={onNavigate}
+                        alertHampirHabis={budgetData?.alertHampirHabis ?? true}
+                        alertMelebihi={budgetData?.alertMelebihi ?? true}
                     />
                     {children}
                 </main>

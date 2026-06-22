@@ -192,7 +192,7 @@ export default function TambahTransaksiPage({ onNavigate, onAdd, onEdit, editDat
                     style={{ borderBottom: '1px solid var(--border-subtle)' }}
                 >
                     <h1
-                        className="text-xl font-bold font-serif"
+                        className="text-xl font-bold"
                         style={{ color: 'var(--text-primary)' }}
                     >
                         {isEditMode ? 'Edit Transaksi' : 'Tambah Transaksi'}

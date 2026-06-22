@@ -40,7 +40,7 @@ const TYPE_CONFIG = {
  *
  * @param {Array} notifications - Array of { id, message, time, type, read }
  */
-export default function NotificationList({ notifications }) {
+export default function NotificationList({ notifications, onNavigate }) {
     return (
         <div
             className="rounded-2xl p-5"
@@ -54,7 +54,7 @@ export default function NotificationList({ notifications }) {
                     className="text-sm font-semibold"
                     style={{ color: 'var(--text-body)' }}
                 >
-                    Notifikasi
+                    Notifikasi Terbaru
                 </h3>
                 <span
                     className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
@@ -64,52 +64,71 @@ export default function NotificationList({ notifications }) {
                 </span>
             </div>
 
-            <ul className="space-y-2">
-                {notifications.map((notif) => {
-                    const config = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.info;
-                    const { Icon, color, bg, border, dotColor } = config;
+            {notifications.length === 0 ? (
+                <div className="text-center p-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+                    Tidak ada notifikasi baru
+                </div>
+            ) : (
+                <ul className="space-y-2">
+                    {notifications.slice(0, 5).map((notif) => {
+                        const config = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.info;
+                        const { Icon, color, bg, border, dotColor } = config;
 
-                    return (
-                        <li
-                            key={notif.id}
-                            className="flex items-start gap-3 p-3 rounded-xl transition-opacity"
-                            style={{
-                                backgroundColor: bg,
-                                border: `1px solid ${border}`,
-                            }}
-                        >
-                            {/* Ikon */}
-                            <span className="flex-shrink-0 mt-0.5">
-                                <Icon size={16} style={{ color }} />
-                            </span>
+                        return (
+                            <li
+                                key={notif.id}
+                                className="flex items-start gap-3 p-3 rounded-xl transition-opacity"
+                                style={{
+                                    backgroundColor: bg,
+                                    border: `1px solid ${border}`,
+                                }}
+                            >
+                                {/* Ikon */}
+                                <span className="flex-shrink-0 mt-0.5">
+                                    <Icon size={16} style={{ color }} />
+                                </span>
 
-                            {/* Konten */}
-                            <div className="flex-1 min-w-0">
-                                <p
-                                    className="text-xs font-medium leading-snug"
-                                    style={{ color: 'var(--text-primary)' }}
-                                >
-                                    {notif.message}
-                                </p>
-                                <p
-                                    className="text-[11px] mt-0.5"
-                                    style={{ color: 'var(--text-muted)' }}
-                                >
-                                    {notif.time}
-                                </p>
-                            </div>
+                                {/* Konten */}
+                                <div className="flex-1 min-w-0">
+                                    <p
+                                        className="text-xs font-medium leading-snug"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        {notif.message}
+                                    </p>
+                                    <p
+                                        className="text-[11px] mt-0.5"
+                                        style={{ color: 'var(--text-muted)' }}
+                                    >
+                                        {notif.time}
+                                    </p>
+                                </div>
 
-                            {/* Dot belum dibaca */}
-                            {!notif.read && (
-                                <span
-                                    className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full"
-                                    style={{ backgroundColor: dotColor }}
-                                />
-                            )}
-                        </li>
-                    );
-                })}
-            </ul>
+                                {/* Dot belum dibaca */}
+                                {!notif.read && (
+                                    <span
+                                        className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: dotColor }}
+                                    />
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+
+            {/* Tombol Lihat Semua jika lebih dari 5 */}
+            {notifications.length > 5 && onNavigate && (
+                <div className="mt-4 text-center">
+                    <button
+                        onClick={() => onNavigate('notifikasi')}
+                        className="text-xs font-semibold hover:underline transition-all"
+                        style={{ color: 'var(--accent)' }}
+                    >
+                        Lihat Semua Notifikasi
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

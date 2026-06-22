@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
@@ -76,38 +77,38 @@ class NotificationController extends Controller
     /**
      * Create a new notification for the authenticated user (called from frontend).
      */
-    public function store(\Illuminate\Http\Request $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'title'   => ['nullable', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:500'],
-            'type'    => ['nullable', 'string'],
+            'type' => ['nullable', 'string'],
         ]);
 
         // Map frontend type to DB enum (alert/reminder/system)
         $typeMap = [
-            'warning'  => 'alert',
+            'warning' => 'alert',
             'reminder' => 'reminder',
-            'success'  => 'system',
-            'info'     => 'system',
+            'success' => 'system',
+            'info' => 'system',
         ];
         $dbType = $typeMap[$validated['type'] ?? 'info'] ?? 'alert';
 
         $notification = Notification::create([
             'user_id' => auth()->id(),
-            'title'   => $validated['title'] ?? 'Notifikasi Keuangan',
+            'title' => $validated['title'] ?? 'Notifikasi Keuangan',
             'message' => $validated['message'],
-            'type'    => $dbType,
+            'type' => $dbType,
             'is_read' => false,
         ]);
 
         return response()->json([
-            'id'      => $notification->id,
-            'title'   => $notification->title,
+            'id' => $notification->id,
+            'title' => $notification->title,
             'message' => $notification->message,
-            'time'    => $notification->created_at->diffForHumans(),
-            'type'    => $validated['type'] ?? 'warning',
-            'read'    => false,
+            'time' => $notification->created_at->diffForHumans(),
+            'type' => $validated['type'] ?? 'warning',
+            'read' => false,
         ], 201);
     }
 }

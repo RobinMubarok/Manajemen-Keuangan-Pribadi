@@ -123,7 +123,7 @@ export default function DashboardPage({ notifications, onMarkRead, onNavigate, t
 
             {/* ── 5. NOTIFIKASI ── */}
             <section>
-                <NotificationList notifications={notifications} />
+                <NotificationList notifications={notifications} onNavigate={onNavigate} />
             </section>
         </div>
     );

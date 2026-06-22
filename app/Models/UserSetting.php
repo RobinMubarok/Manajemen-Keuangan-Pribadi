@@ -40,6 +40,8 @@ class UserSetting extends Model
         'user_id',
         'daily_reminder_enabled',
         'budget_alert_enabled',
+        'alert_hampir_habis',
+        'alert_melebihi',
     ];
 
     /**
@@ -50,6 +52,8 @@ class UserSetting extends Model
     protected $casts = [
         'daily_reminder_enabled' => 'boolean',
         'budget_alert_enabled' => 'boolean',
+        'alert_hampir_habis' => 'boolean',
+        'alert_melebihi' => 'boolean',
     ];
 
     /**

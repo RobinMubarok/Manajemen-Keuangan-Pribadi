@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -20,50 +21,52 @@ class DashboardController extends Controller
         $now = Carbon::now();
 
         // ── Monthly income & expense (current month) ────────────────────
-        $monthlyIncome = Transaction::where('user_id', $userId)
-            ->whereYear('transaction_date', $now->year)
-            ->whereMonth('transaction_date', $now->month)
-            ->whereHas('category', fn ($q) => $q->where('type', 'pemasukan'))
-            ->sum('amount');
+        // Gunakan single query dengan group by untuk mendapatkan total pemasukan dan pengeluaran sekaligus
+        $monthlyTotals = DB::table('transactions')
+            ->join('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.user_id', $userId)
+            ->whereYear('transactions.transaction_date', $now->year)
+            ->whereMonth('transactions.transaction_date', $now->month)
+            ->selectRaw('categories.type, SUM(transactions.amount) as total')
+            ->groupBy('categories.type')
+            ->pluck('total', 'type');
 
-        $monthlyExpense = Transaction::where('user_id', $userId)
-            ->whereYear('transaction_date', $now->year)
-            ->whereMonth('transaction_date', $now->month)
-            ->whereHas('category', fn ($q) => $q->where('type', 'pengeluaran'))
-            ->sum('amount');
+        $monthlyIncome = $monthlyTotals['pemasukan'] ?? 0;
+        $monthlyExpense = $monthlyTotals['pengeluaran'] ?? 0;
 
         // ── Daily budget progress (today) ───────────────────────────────
         $dailyBudget = Budget::where('user_id', $userId)
             ->where('period', 'harian')
             ->first();
 
-        $dailyExpense = Transaction::where('user_id', $userId)
-            ->where('transaction_date', $now->toDateString())
-            ->whereHas('category', fn ($q) => $q->where('type', 'pengeluaran'))
-            ->sum('amount');
+        // Join lebih cepat daripada whereHas
+        $dailyExpense = DB::table('transactions')
+            ->join('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.user_id', $userId)
+            ->where('transactions.transaction_date', $now->toDateString())
+            ->where('categories.type', 'pengeluaran')
+            ->sum('transactions.amount');
 
         // ── Top spending categories for donut chart (current month) ─────
-        $spendingByCategory = Transaction::with('category')
-            ->where('user_id', $userId)
-            ->whereYear('transaction_date', $now->year)
-            ->whereMonth('transaction_date', $now->month)
-            ->whereHas('category', fn ($q) => $q->where('type', 'pengeluaran'))
+        // Gunakan agregasi level database (SUM dan GROUP BY) bukan di memory PHP
+        $spendingByCategory = DB::table('transactions')
+            ->join('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.user_id', $userId)
+            ->whereYear('transactions.transaction_date', $now->year)
+            ->whereMonth('transactions.transaction_date', $now->month)
+            ->where('categories.type', 'pengeluaran')
+            ->selectRaw('categories.name, categories.color, SUM(transactions.amount) as amount')
+            ->groupBy('categories.name', 'categories.color')
+            ->orderByDesc('amount')
+            ->limit(5)
             ->get()
-            ->groupBy(fn ($t) => $t->category->name)
-            ->map(function ($group) {
+            ->map(function ($data) {
                 return [
-                    'amount' => $group->sum('amount'),
-                    'color' => $group->first()->category->color,
+                    'name' => $data->name,
+                    'value' => (int) $data->amount,
+                    'color' => $data->color,
                 ];
-            })
-            ->sortByDesc('amount')
-            ->take(5)
-            ->map(fn ($data, $name) => [
-                'name' => $name,
-                'value' => (int) $data['amount'],
-                'color' => $data['color'],
-            ])
-            ->values();
+            });
 
         // ── 5 most recent transactions ──────────────────────────────────
         $recentTransactions = Transaction::with('category')

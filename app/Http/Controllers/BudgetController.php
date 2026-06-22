@@ -37,8 +37,8 @@ class BudgetController extends Controller
             'bulanan' => $bulananBudget ? (int) $bulananBudget->amount : 0,
             'kategori' => 'Harian',
             'notifikasi' => $settings->daily_reminder_enabled,
-            'alertHampirHabis' => $settings->budget_alert_enabled,
-            'alertMelebihi' => $settings->budget_alert_enabled,
+            'alertHampirHabis' => $settings->alert_hampir_habis,
+            'alertMelebihi' => $settings->alert_melebihi,
         ]);
     }
 
@@ -68,12 +68,14 @@ class BudgetController extends Controller
             ['amount' => $request->input('bulanan', 0)]
         );
 
-        // 2. Update settings
+        // 2. Update settings — simpan masing-masing flag secara terpisah
         UserSetting::updateOrCreate(
             ['user_id' => $userId],
             [
                 'daily_reminder_enabled' => $request->notifikasi,
                 'budget_alert_enabled' => $request->alertHampirHabis || $request->alertMelebihi,
+                'alert_hampir_habis' => $request->alertHampirHabis,
+                'alert_melebihi' => $request->alertMelebihi,
             ]
         );
 

@@ -177,7 +177,7 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1
-                        className="text-2xl font-bold font-serif"
+                        className="text-2xl font-bold"
                         style={{ color: 'var(--text-primary)' }}
                     >
                         Transaksi
@@ -327,42 +327,42 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                                 }}
                             >
                                 <th
-                                    className="px-6 py-4 font-bold font-serif whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    className="px-6 py-4 font-bold whitespace-nowrap cursor-pointer select-none transition-colors"
                                     style={sortableHeaderStyle('date')}
                                     onClick={() => handleSort('date')}
                                 >
                                     Tanggal {renderSortIcon('date')}
                                 </th>
                                 <th
-                                    className="px-6 py-4 font-bold font-serif whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    className="px-6 py-4 font-bold whitespace-nowrap cursor-pointer select-none transition-colors"
                                     style={sortableHeaderStyle('category')}
                                     onClick={() => handleSort('category')}
                                 >
                                     Kategori {renderSortIcon('category')}
                                 </th>
                                 <th
-                                    className="px-6 py-4 font-bold font-serif min-w-[200px] cursor-pointer select-none transition-colors"
+                                    className="px-6 py-4 font-bold min-w-[200px] cursor-pointer select-none transition-colors"
                                     style={sortableHeaderStyle('description')}
                                     onClick={() => handleSort('description')}
                                 >
                                     Deskripsi {renderSortIcon('description')}
                                 </th>
                                 <th
-                                    className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    className="px-6 py-4 font-bold text-center whitespace-nowrap cursor-pointer select-none transition-colors"
                                     style={sortableHeaderStyle('amount')}
                                     onClick={() => handleSort('amount')}
                                 >
                                     Jumlah {renderSortIcon('amount')}
                                 </th>
                                 <th
-                                    className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap cursor-pointer select-none transition-colors"
+                                    className="px-6 py-4 font-bold text-center whitespace-nowrap cursor-pointer select-none transition-colors"
                                     style={sortableHeaderStyle('type')}
                                     onClick={() => handleSort('type')}
                                 >
                                     Tipe {renderSortIcon('type')}
                                 </th>
                                 <th
-                                    className="px-6 py-4 font-bold font-serif text-center whitespace-nowrap"
+                                    className="px-6 py-4 font-bold text-center whitespace-nowrap"
                                     style={{ color: 'var(--text-primary)' }}
                                 >
                                     Aksi
@@ -517,7 +517,7 @@ export default function TransaksiPage({ onNavigate, transactions = [], onDelete,
                                     <AlertTriangle size={20} style={{ color: 'var(--negative)' }} />
                                 </div>
                                 <h3
-                                    className="text-lg font-bold font-serif"
+                                    className="text-lg font-bold"
                                     style={{ color: 'var(--text-primary)' }}
                                 >
                                     Hapus Transaksi

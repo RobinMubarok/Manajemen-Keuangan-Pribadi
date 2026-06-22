@@ -173,7 +173,8 @@ class TransactionController extends Controller
     {
         $settings = UserSetting::firstOrCreate(['user_id' => $userId]);
 
-        if (! $settings->budget_alert_enabled) {
+        // Jika kedua alert dinonaktifkan, tidak perlu cek sama sekali
+        if (! $settings->alert_hampir_habis && ! $settings->alert_melebihi) {
             return;
         }
 
@@ -192,7 +193,7 @@ class TransactionController extends Controller
 
             $percent = ($dailyExpense / $dailyBudget->amount) * 100;
 
-            if ($percent >= 100) {
+            if ($settings->alert_melebihi && $percent >= 100) {
                 $message = 'Budget Harian sudah melebihi batas ('.number_format($percent, 0).'% terpakai pada '.$carbonDate->format('d/m/Y').')';
                 $exists = Notification::where('user_id', $userId)
                     ->where('message', 'like', 'Budget Harian sudah melebihi batas%')
@@ -207,7 +208,7 @@ class TransactionController extends Controller
                         'type' => 'alert',
                     ]);
                 }
-            } elseif ($percent >= 80) {
+            } elseif ($settings->alert_hampir_habis && $percent >= 80) {
                 $message = 'Budget Harian hampir habis ('.number_format($percent, 0).'% terpakai pada '.$carbonDate->format('d/m/Y').')';
                 $exists = Notification::where('user_id', $userId)
                     ->where('message', 'like', 'Budget Harian hampir habis%')

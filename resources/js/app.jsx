@@ -151,6 +151,9 @@ export default function App() {
     useEffect(() => {
         if (!dashboardSummary || !budgetData || !user) return;
 
+        // Jangan kirim notifikasi jika setting notifikasi dimatikan
+        if (!budgetData.notifikasi) return;
+
         const dailyUsed  = dashboardSummary.dailyBudgetUsed  ?? 0;
         const dailyTotal = dashboardSummary.dailyBudgetTotal ?? (budgetData.harian ?? 0);
         if (dailyTotal <= 0) return;
@@ -186,13 +189,15 @@ export default function App() {
         const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const pct = Math.round(dailyPct);
 
-        if (dailyPct >= 100) {
+        // Cek alertMelebihi untuk kondisi >= 100%
+        if (budgetData.alertMelebihi && dailyPct >= 100) {
             sendNotif(
                 'Peringatan Budget',
                 `Budget Harian sudah melebihi batas (${pct}% terpakai pada ${dateStr})`,
                 'exceeded'
             );
-        } else if (dailyPct >= 80) {
+        // Cek alertHampirHabis untuk kondisi 80-99%
+        } else if (budgetData.alertHampirHabis && dailyPct >= 80) {
             sendNotif(
                 'Peringatan Budget',
                 `Budget Harian hampir habis (${pct}% terpakai pada ${dateStr})`,

@@ -184,7 +184,7 @@ export default function LaporanPage({ onNavigate }) {
             {/* ── 1. HEADER (Tampilan Web) ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
                 <div>
-                    <h1 className="text-2xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>
+                    <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
                         Report Keuangan
                     </h1>
                     <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -241,17 +241,17 @@ export default function LaporanPage({ onNavigate }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
                 <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--accent-border)' }}>
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Total Pemasukan</p>
-                    <p className="text-3xl font-bold font-serif text-center mt-4" style={{ color: 'var(--positive)' }}>{formatRupiah(totalPemasukan)}</p>
+                    <p className="text-3xl font-bold text-center mt-4" style={{ color: 'var(--positive)' }}>{formatRupiah(totalPemasukan)}</p>
                 </div>
                 <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Total Pengeluaran</p>
-                    <p className="text-3xl font-bold font-serif text-center mt-4" style={{ color: 'var(--negative)' }}>{formatRupiah(totalPengeluaran)}</p>
+                    <p className="text-3xl font-bold text-center mt-4" style={{ color: 'var(--negative)' }}>{formatRupiah(totalPengeluaran)}</p>
                 </div>
             </div>
 
             {/* ── 4. TABLE SECTION (Tampilan Web) ── */}
             <div className="space-y-4 print:hidden">
-                <h2 className="text-xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                     Daftar Transaksi {currentMonthName} {selectedYear}
                 </h2>
                 <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>

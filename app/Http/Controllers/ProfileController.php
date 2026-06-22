@@ -12,9 +12,6 @@ class ProfileController extends Controller
 {
     /**
      * Get the authenticated user's profile details.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function show(Request $request): JsonResponse
     {
@@ -34,9 +31,6 @@ class ProfileController extends Controller
 
     /**
      * Update the authenticated user's profile info.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function update(Request $request): JsonResponse
     {
@@ -57,7 +51,7 @@ class ProfileController extends Controller
         $user->gender = $validated['gender'] ?? null;
 
         // Sync name to first_name + last_name
-        $fullName = trim(($validated['first_name'] ?? '') . ' ' . ($validated['last_name'] ?? ''));
+        $fullName = trim(($validated['first_name'] ?? '').' '.($validated['last_name'] ?? ''));
         if ($fullName !== '') {
             $user->name = $fullName;
         }
@@ -78,9 +72,6 @@ class ProfileController extends Controller
 
     /**
      * Upload and update the authenticated user's profile photo.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function updatePhoto(Request $request): JsonResponse
     {
@@ -101,7 +92,7 @@ class ProfileController extends Controller
 
             // Store new photo
             $path = $request->file('photo')->store('profile-photos', 'public');
-            $user->photo_url = '/storage/' . $path;
+            $user->photo_url = '/storage/'.$path;
             $user->save();
         }
 

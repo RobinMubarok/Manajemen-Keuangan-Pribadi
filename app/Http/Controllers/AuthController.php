@@ -128,7 +128,7 @@ class AuthController extends Controller
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('profiles', 'public');
-            $user->photo_url = '/storage/' . $path;
+            $user->photo_url = '/storage/'.$path;
         }
 
         $user->first_name = $validated['first_name'] ?? null;

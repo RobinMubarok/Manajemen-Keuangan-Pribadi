@@ -11,20 +11,48 @@ import { AlertTriangle, X, ArrowRight } from 'lucide-react';
  * @param {number}   totalBudget  - Total budget bulanan yang di-set user
  * @param {Function} onNavigate   - Callback navigasi ke halaman budget
  */
-export default function BudgetAlertBanner({ totalSpent, totalBudget, onNavigate }) {
+export default function BudgetAlertBanner({ 
+    totalSpent, 
+    totalBudget, 
+    onNavigate,
+    alertHampirHabis = true,
+    alertMelebihi = true
+}) {
     const [dismissed, setDismissed] = useState(false);
     const [visible, setVisible] = useState(false);
     const [closing, setClosing] = useState(false);
 
     const percentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
-    const shouldShow = percentage >= 80 && totalBudget > 0;
+    
+    // Tentukan apakah alert perlu muncul berdasarkan persentase dan setelan user
+    const isOver100 = percentage >= 100;
+    const isNearLimit = percentage >= 80 && percentage < 100;
+    
+    let shouldShow = false;
+    if (totalBudget > 0) {
+        if (isOver100 && alertMelebihi) shouldShow = true;
+        if (isNearLimit && alertHampirHabis) shouldShow = true;
+    }
+
     const remaining = Math.max(totalBudget - totalSpent, 0);
 
-    // Slide-in animation on mount
+    // Reset dismissed state if totalSpent increases (user added new transaction)
+    const prevSpent = React.useRef(totalSpent);
+    useEffect(() => {
+        if (totalSpent > prevSpent.current) {
+            setDismissed(false);
+            setClosing(false);
+        }
+        prevSpent.current = totalSpent;
+    }, [totalSpent]);
+
+    // Slide-in animation on mount or when shouldShow becomes true
     useEffect(() => {
         if (shouldShow && !dismissed) {
             const timer = setTimeout(() => setVisible(true), 50);
             return () => clearTimeout(timer);
+        } else if (!shouldShow) {
+            setVisible(false);
         }
     }, [shouldShow, dismissed]);
 
@@ -43,7 +71,7 @@ export default function BudgetAlertBanner({ totalSpent, totalBudget, onNavigate 
     const formatRupiah = (amount) =>
         'Rp ' + Math.abs(amount).toLocaleString('id-ID');
 
-    const isOver100 = percentage >= 100;
+
 
     return (
         <div

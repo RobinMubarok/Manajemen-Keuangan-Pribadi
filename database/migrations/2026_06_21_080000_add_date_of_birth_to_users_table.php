@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Add date_of_birth column if it does not exist
-            if (!Schema::hasColumn('users', 'date_of_birth')) {
+            if (! Schema::hasColumn('users', 'date_of_birth')) {
                 $table->date('date_of_birth')->nullable()->after('email');
             }
         });

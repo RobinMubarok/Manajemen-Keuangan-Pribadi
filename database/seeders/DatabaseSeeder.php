@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Budget;
+use App\Models\Category;
+use App\Models\Notification;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserSetting;
-use App\Models\Category;
-use App\Models\Budget;
-use App\Models\Transaction;
-use App\Models\Notification;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
 
         $categories = [];
         foreach ($categoriesData as $cat) {
-            $categories[$cat['name'] . '_' . $cat['type']] = Category::updateOrCreate(
+            $categories[$cat['name'].'_'.$cat['type']] = Category::updateOrCreate(
                 ['user_id' => $user->id, 'name' => $cat['name'], 'type' => $cat['type']]
             );
         }
@@ -166,7 +166,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($transactionsData as $tx) {
-            $catKey = $tx['category_name'] . '_' . $tx['category_type'];
+            $catKey = $tx['category_name'].'_'.$tx['category_type'];
             $category = $categories[$catKey] ?? null;
 
             if ($category) {

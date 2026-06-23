@@ -10,18 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /**
-     * Return dashboard summary data for the authenticated user.
-     * Includes: monthly income/expense, daily budget progress, top spending
-     * categories (donut chart), and 5 most recent transactions.
-     */
     public function index(): JsonResponse
     {
         $userId = auth()->id();
         $now = Carbon::now();
 
         // ── Monthly income & expense (current month) ────────────────────
-        // Gunakan single query dengan group by untuk mendapatkan total pemasukan dan pengeluaran sekaligus
         $monthlyTotals = DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
             ->where('transactions.user_id', $userId)
@@ -34,9 +28,13 @@ class DashboardController extends Controller
         $monthlyIncome = $monthlyTotals['pemasukan'] ?? 0;
         $monthlyExpense = $monthlyTotals['pengeluaran'] ?? 0;
 
-        // ── Daily budget progress (today) ───────────────────────────────
+        // ── Daily & Monthly budget progress ──────────────────────────────
         $dailyBudget = Budget::where('user_id', $userId)
             ->where('period', 'harian')
+            ->first();
+            
+        $monthlyBudget = Budget::where('user_id', $userId)
+            ->where('period', 'bulanan')
             ->first();
 
         // Join lebih cepat daripada whereHas
@@ -46,9 +44,22 @@ class DashboardController extends Controller
             ->where('transactions.transaction_date', $now->toDateString())
             ->where('categories.type', 'pengeluaran')
             ->sum('transactions.amount');
+            
+        $dailyAmount = $dailyBudget ? (int) $dailyBudget->amount : 0;
+        $monthlyAmount = $monthlyBudget ? (int) $monthlyBudget->amount : 0;
+
+        // Tentukan mana yang aktif
+        if ($monthlyAmount > 0 && $dailyAmount == 0) {
+            $activeBudgetTotal = $monthlyAmount;
+            $activeBudgetUsed = (int) $monthlyExpense;
+            $budgetLabel = 'Pengeluaran budget bulanan';
+        } else {
+            $activeBudgetTotal = $dailyAmount;
+            $activeBudgetUsed = (int) $dailyExpense;
+            $budgetLabel = 'Pengeluaran budget harian';
+        }
 
         // ── Top spending categories for donut chart (current month) ─────
-        // Gunakan agregasi level database (SUM dan GROUP BY) bukan di memory PHP
         $spendingByCategory = DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
             ->where('transactions.user_id', $userId)
@@ -87,8 +98,9 @@ class DashboardController extends Controller
             'monthLabel' => $now->translatedFormat('F Y'),
             'income' => (int) $monthlyIncome,
             'expense' => (int) $monthlyExpense,
-            'dailyBudgetTotal' => $dailyBudget ? (int) $dailyBudget->amount : 0,
-            'dailyBudgetUsed' => (int) $dailyExpense,
+            'dailyBudgetTotal' => $activeBudgetTotal,
+            'dailyBudgetUsed' => $activeBudgetUsed,
+            'budgetLabel' => $budgetLabel,
             'spendingData' => $spendingByCategory,
             'recentTransactions' => $recentTransactions,
         ]);

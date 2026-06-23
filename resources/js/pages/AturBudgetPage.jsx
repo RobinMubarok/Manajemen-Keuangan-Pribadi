@@ -207,7 +207,6 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                                 style={inputStyle}
                             >
                                 <option value="Harian">Harian</option>
-                                <option value="Mingguan">Mingguan</option>
                                 <option value="Bulanan">Bulanan</option>
                             </select>
                             <ChevronDown

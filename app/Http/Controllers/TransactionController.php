@@ -241,7 +241,7 @@ class TransactionController extends Controller
             $percentMonthly = ($monthlyExpense / $monthlyBudget->amount) * 100;
             $monthLabel = $carbonDate->translatedFormat('F Y');
 
-            if ($percentMonthly >= 100) {
+            if ($settings->alert_melebihi && $percentMonthly >= 100) {
                 $message = 'Budget Bulanan sudah melebihi batas ('.number_format($percentMonthly, 0).'% terpakai pada '.$monthLabel.')';
                 $exists = Notification::where('user_id', $userId)
                     ->where('message', 'like', 'Budget Bulanan sudah melebihi batas%'.$monthLabel.'%')
@@ -255,7 +255,7 @@ class TransactionController extends Controller
                         'type' => 'alert',
                     ]);
                 }
-            } elseif ($percentMonthly >= 80) {
+            } elseif ($settings->alert_hampir_habis && $percentMonthly >= 80) {
                 $message = 'Budget Bulanan hampir habis ('.number_format($percentMonthly, 0).'% terpakai pada '.$monthLabel.')';
                 $exists = Notification::where('user_id', $userId)
                     ->where('message', 'like', 'Budget Bulanan hampir habis%'.$monthLabel.'%')

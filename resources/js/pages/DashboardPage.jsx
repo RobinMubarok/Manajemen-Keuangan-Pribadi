@@ -6,8 +6,6 @@ import TransactionList from '../components/TransactionList';
 import NotificationList from '../components/NotificationList';
 
 /**
- * Helper: format angka ke format Rupiah (e.g. 17600000 → "Rp 17.600.000")
- *
  * @param {number} amount
  * @returns {string}
  */
@@ -16,12 +14,7 @@ function formatRupiah(amount) {
 }
 
 /**
- * DashboardPage
- *
- * Halaman utama aplikasi. Fetch data ringkasan dari /api/dashboard
- * sehingga semua angka mencerminkan data user yang sesungguhnya.
- *
- * @param {Array}    notifications - Notifikasi aktif dari App.jsx
+ * @param {Array}    notifications 
  * @param {Function} onMarkRead    - Callback untuk menandai dibaca
  */
 export default function DashboardPage({ notifications, onMarkRead, onNavigate, transactions = [], budgetData = null }) {
@@ -98,11 +91,12 @@ export default function DashboardPage({ notifications, onMarkRead, onNavigate, t
                 </div>
             </section>
 
-            {/* ── 3. BUDGET HARIAN ── */}
+            {/* ── 3. BUDGET HARIAN/BULANAN ── */}
             <section>
                 <BudgetProgress
                     used={dashboardData?.dailyBudgetUsed ?? 0}
                     total={dashboardData?.dailyBudgetTotal ?? 0}
+                    label={dashboardData?.budgetLabel ?? 'Pengeluaran budget harian'}
                 />
             </section>
 

@@ -32,10 +32,18 @@ class BudgetController extends Controller
             ->where('period', 'bulanan')
             ->first();
 
+        $harianAmount = $harianBudget ? (int) $harianBudget->amount : 0;
+        $bulananAmount = $bulananBudget ? (int) $bulananBudget->amount : 0;
+
+        $kategori = 'Harian';
+        if ($bulananAmount > 0 && $harianAmount == 0) {
+            $kategori = 'Bulanan';
+        }
+
         return response()->json([
-            'harian' => $harianBudget ? (int) $harianBudget->amount : 0,
-            'bulanan' => $bulananBudget ? (int) $bulananBudget->amount : 0,
-            'kategori' => 'Harian',
+            'harian' => $harianAmount,
+            'bulanan' => $bulananAmount,
+            'kategori' => $kategori,
             'notifikasi' => $settings->daily_reminder_enabled,
             'alertHampirHabis' => $settings->alert_hampir_habis,
             'alertMelebihi' => $settings->alert_melebihi,

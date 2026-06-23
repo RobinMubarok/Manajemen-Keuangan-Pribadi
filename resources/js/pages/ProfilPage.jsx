@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, RefreshCw } from 'lucide-react';
+import { Camera, RefreshCw, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function ProfilPage({ onNavigate }) {
@@ -16,6 +16,9 @@ export default function ProfilPage({ onNavigate }) {
     });
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const fileInputRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [successMsg, setSuccessMsg] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
 
     // Initialize form when user data changes
     useEffect(() => {
@@ -49,6 +52,9 @@ export default function ProfilPage({ onNavigate }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+        setSuccessMsg('');
+        setErrorMsg('');
         try {
             // Update textual profile data
             const token = localStorage.getItem('auth_token');
@@ -73,7 +79,8 @@ export default function ProfilPage({ onNavigate }) {
             }
             if (!res.ok) {
                 const err = await res.json();
-                alert(err.message || 'Gagal memperbarui profil');
+                setErrorMsg(err.message || 'Gagal memperbarui profil');
+                setIsLoading(false);
                 return;
             }
             // If a new photo was selected, upload it
@@ -93,16 +100,20 @@ export default function ProfilPage({ onNavigate }) {
                 }
                 if (!photoRes.ok) {
                     const err = await photoRes.json();
-                    alert(err.message || 'Gagal mengunggah foto');
+                    setErrorMsg(err.message || 'Gagal mengunggah foto');
+                    setIsLoading(false);
                     return;
                 }
             }
             // Refresh user data globally
             await refreshUser();
-            alert('Profil berhasil di‑update');
+            setSuccessMsg('Profil berhasil di-update');
+            setTimeout(() => setSuccessMsg(''), 5000);
         } catch (err) {
             console.error(err);
-            alert('Terjadi kesalahan saat memperbarui profil');
+            setErrorMsg('Terjadi kesalahan saat memperbarui profil');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -139,6 +150,18 @@ export default function ProfilPage({ onNavigate }) {
                     {/* Right Column: Account Details Form */}
                     <div className="flex-1 w-full max-w-3xl">
                         <h2 className="text-2xl font-bold mb-6 tracking-tight text-center lg:text-left" style={{ color: 'var(--text-primary)' }}>Account Details</h2>
+                        
+                        {successMsg && (
+                            <div className="mb-6 p-4 rounded-xl text-[14px] font-medium" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                                {successMsg}
+                            </div>
+                        )}
+                        {errorMsg && (
+                            <div className="mb-6 p-4 rounded-xl text-[14px] font-medium" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                {errorMsg}
+                            </div>
+                        )}
+
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {/* First & Last Name */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -185,8 +208,9 @@ export default function ProfilPage({ onNavigate }) {
                             </div>
                             {/* Submit */}
                             <div className="flex justify-end pt-5">
-                                <button type="submit" className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-[14px] font-bold" style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}>
-                                    <RefreshCw size={18} strokeWidth={2.5} /> Update
+                                <button type="submit" disabled={isLoading} className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-[14px] font-bold transition-all disabled:opacity-60" style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}>
+                                    {isLoading ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <RefreshCw size={18} strokeWidth={2.5} />}
+                                    {isLoading ? 'Updating...' : 'Update'}
                                 </button>
                             </div>
                         </form>

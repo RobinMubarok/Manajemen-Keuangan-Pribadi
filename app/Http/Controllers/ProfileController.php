@@ -84,15 +84,18 @@ class ProfileController extends Controller
         if ($request->hasFile('photo')) {
             // Delete old photo if it exists locally
             if ($user->photo_url) {
-                $oldPath = str_replace('/storage/', '', $user->photo_url);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                $oldPath = public_path(ltrim($user->photo_url, '/'));
+                if (file_exists($oldPath) && is_file($oldPath)) {
+                    @unlink($oldPath);
                 }
             }
 
-            // Store new photo
-            $path = $request->file('photo')->store('profile-photos', 'public');
-            $user->photo_url = '/storage/'.$path;
+            // Store new photo directly to public/profile-photos
+            $file = $request->file('photo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('profile-photos'), $filename);
+            
+            $user->photo_url = '/profile-photos/'.$filename;
             $user->save();
         }
 

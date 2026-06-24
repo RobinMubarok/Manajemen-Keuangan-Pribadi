@@ -1,9 +1,77 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, RefreshCw, Loader2 } from 'lucide-react';
+import { Camera, RefreshCw, Loader2, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+function CustomDropdown({ value, options, onChange, placeholder }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedOption = options.find(opt => opt.value === value);
+
+    return (
+        <div className="relative w-full" ref={dropdownRef}>
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl border text-[14px] transition-all outline-none cursor-pointer text-left font-medium"
+                style={{
+                    backgroundColor: 'var(--bg-base)',
+                    borderColor: 'var(--border-default)',
+                    color: value ? 'var(--text-primary)' : 'var(--text-muted)'
+                }}
+            >
+                <span>{selectedOption ? selectedOption.label : placeholder}</span>
+                <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    style={{ color: 'var(--text-muted)' }}
+                />
+            </button>
+
+            {isOpen && (
+                <div
+                    className="absolute z-50 left-0 right-0 mt-1.5 rounded-xl border shadow-xl max-h-60 overflow-y-auto py-1"
+                    style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        borderColor: 'var(--border-default)',
+                        color: 'var(--text-primary)',
+                    }}
+                >
+                    {options.map((opt) => (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                                onChange(opt.value);
+                                setIsOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 text-[14px] transition-colors hover:bg-[var(--bg-hover)]"
+                            style={{
+                                color: opt.value === value ? 'var(--accent)' : 'var(--text-primary)',
+                                fontWeight: opt.value === value ? '600' : '400',
+                            }}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function ProfilPage({ onNavigate }) {
-    const { user, refreshUser, logout } = useAuth();
+    const { user, setUser, refreshUser, logout } = useAuth();
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -104,9 +172,16 @@ export default function ProfilPage({ onNavigate }) {
                     setIsLoading(false);
                     return;
                 }
+                // Instantly sync new photo_url to AuthContext & sidebar
+                const photoData = await photoRes.json();
+                const newPhotoUrl = photoData.photo_url;
+                setUser((prev) => ({ ...prev, photo_url: newPhotoUrl }));
+                setFormData((prev) => ({ ...prev, photo: newPhotoUrl }));
+                setSelectedPhoto(null);
+            } else {
+                // Refresh other profile fields
+                await refreshUser();
             }
-            // Refresh user data globally
-            await refreshUser();
             setSuccessMsg('Profil berhasil di-update');
             setTimeout(() => setSuccessMsg(''), 5000);
         } catch (err) {
@@ -130,8 +205,24 @@ export default function ProfilPage({ onNavigate }) {
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full h-full">
-            <div className="rounded-[24px] p-6 sm:p-8 lg:p-10 border" style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
-                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+            <div className="rounded-[24px] border" style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
+                {/* Card header — tombol ✕ hanya tampil di mobile */}
+                <div
+                    className="lg:hidden flex items-center justify-between px-6 pt-5 pb-4"
+                    style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                >
+                    <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Profil Pengguna</h1>
+                    <button
+                        type="button"
+                        onClick={() => onNavigate('dashboard')}
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded-lg hover:bg-[var(--bg-hover)]"
+                        title="Tutup"
+                        aria-label="Tutup"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+                <div className="p-6 sm:p-8 lg:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
                     {/* Left Column: Profile Photo */}
                     <div className="flex flex-col items-center w-full lg:w-auto shrink-0">
                         <div className="relative group w-56 h-56 lg:w-[260px] lg:h-[260px] rounded-[36px] overflow-hidden flex items-center justify-center cursor-pointer transition-all border" style={{ backgroundColor: 'var(--accent-muted)', borderColor: 'var(--border-subtle)' }} onClick={() => fileInputRef.current.click()}>
@@ -183,18 +274,54 @@ export default function ProfilPage({ onNavigate }) {
                             <div className="space-y-2">
                                 <label className="block text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>Date of Birth (Optional)</label>
                                 <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                                    <select name="dobDay" value={formData.dobDay} onChange={handleChange} className="w-full px-3 sm:px-4 py-3 rounded-xl border text-[14px] transition-all outline-none cursor-pointer" style={{ backgroundColor: 'var(--bg-base)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}>
-                                        <option value="" disabled>Day</option>
-                                        {days.map(d => <option key={d} value={d}>{d}</option>)}
-                                    </select>
-                                    <select name="dobMonth" value={formData.dobMonth} onChange={handleChange} className="w-full px-3 sm:px-4 py-3 rounded-xl border text-[14px] transition-all outline-none cursor-pointer" style={{ backgroundColor: 'var(--bg-base)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}>
-                                        <option value="" disabled>Month</option>
-                                        {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                                    </select>
-                                    <select name="dobYear" value={formData.dobYear} onChange={handleChange} className="w-full px-3 sm:px-4 py-3 rounded-xl border text-[14px] transition-all outline-none cursor-pointer" style={{ backgroundColor: 'var(--bg-base)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}>
-                                        <option value="" disabled>Year</option>
-                                        {years.map(y => <option key={y} value={y}>{y}</option>)}
-                                    </select>
+                                                                        <input
+                                      type="number"
+                                      name="dobDay"
+                                      value={formData.dobDay}
+                                      onChange={handleChange}
+                                      min="1"
+                                      max="31"
+                                      placeholder="DD"
+                                      className="w-full px-4 py-3 rounded-xl border text-[14px] transition-all outline-none"
+                                      style={{
+                                        backgroundColor: 'var(--bg-base)',
+                                        borderColor: 'var(--border-default)',
+                                        color: 'var(--text-primary)'
+                                      }}
+                                      required
+                                    />
+                                    <input
+                                      type="number"
+                                      name="dobMonth"
+                                      value={formData.dobMonth}
+                                      onChange={handleChange}
+                                      min="1"
+                                      max="12"
+                                      placeholder="MM"
+                                      className="w-full px-4 py-3 rounded-xl border text-[14px] transition-all outline-none"
+                                      style={{
+                                        backgroundColor: 'var(--bg-base)',
+                                        borderColor: 'var(--border-default)',
+                                        color: 'var(--text-primary)'
+                                      }}
+                                      required
+                                    />
+                                    <input
+                                      type="number"
+                                      name="dobYear"
+                                      value={formData.dobYear}
+                                      onChange={handleChange}
+                                      min="1900"
+                                      max={new Date().getFullYear()}
+                                      placeholder="YYYY"
+                                      className="w-full px-4 py-3 rounded-xl border text-[14px] transition-all outline-none"
+                                      style={{
+                                        backgroundColor: 'var(--bg-base)',
+                                        borderColor: 'var(--border-default)',
+                                        color: 'var(--text-primary)'
+                                      }}
+                                      required
+                                    />
                                 </div>
                             </div>
                             {/* Gender */}

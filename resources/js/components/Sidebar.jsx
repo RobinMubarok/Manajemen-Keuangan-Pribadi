@@ -182,14 +182,18 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onClose, unre
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                         <div
-                            className="flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold flex-shrink-0 bg-cover bg-center"
-                            style={{
-                                backgroundColor: 'var(--accent)',
-                                color: 'var(--text-on-accent)',
-                                backgroundImage: userProfile?.photo_url ? `url(${userProfile.photo_url})` : 'none'
-                            }}
+                            className="relative flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold flex-shrink-0 overflow-hidden"
+                            style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
                         >
-                            {!userProfile?.photo_url && (userProfile?.first_name?.charAt(0) || 'U')}
+                            {userProfile?.photo_url ? (
+                                <img
+                                    src={userProfile.photo_url}
+                                    alt="avatar"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span>{userProfile?.first_name?.charAt(0) || 'U'}</span>
+                            )}
                         </div>
                         <div className="min-w-0 text-left flex-1">
                             <p

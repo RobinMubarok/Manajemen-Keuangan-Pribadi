@@ -128,13 +128,13 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
 
                 {/* Body Form */}
                 <div className="p-5 space-y-5">
-                    {/* Harian Budget */}
+                    {/* Budget (single input, driven by kategoriBudget) */}
                     <div className="space-y-2">
                         <label
                             className="block font-semibold text-sm"
                             style={{ color: 'var(--text-primary)' }}
                         >
-                            Harian Budget
+                            {kategoriBudget === 'Harian' ? 'Harian Budget' : 'Bulanan Budget'}
                         </label>
                         <div className="relative">
                             <span
@@ -146,37 +146,17 @@ export default function AturBudgetPage({ onNavigate, budgetData, onSave }) {
                             <input
                                 type="text"
                                 inputMode="numeric"
-                                value={formatDisplayValue(harianBudget)}
-                                onChange={(e) => setHarianBudget(handleAmountChange(e.target.value.replace(/\./g, '')))}
-                                placeholder="0"
-                                className="w-full pl-10 pr-4 py-2.5 rounded-lg font-bold focus:outline-none transition-colors text-xl"
-                                style={inputStyle}
-                                onFocus={e => e.target.style.borderColor = 'var(--border-strong)'}
-                                onBlur={e => e.target.style.borderColor = 'var(--border-default)'}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Bulanan Budget */}
-                    <div className="space-y-2">
-                        <label
-                            className="block font-semibold text-sm"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            Bulanan Budget
-                        </label>
-                        <div className="relative">
-                            <span
-                                className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Rp
-                            </span>
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                value={formatDisplayValue(bulananBudget)}
-                                onChange={(e) => setBulananBudget(handleAmountChange(e.target.value.replace(/\./g, '')))}
+                                value={formatDisplayValue(
+                                    kategoriBudget === 'Harian' ? harianBudget : bulananBudget
+                                )}
+                                onChange={(e) => {
+                                    const cleaned = handleAmountChange(e.target.value.replace(/\./g, ''));
+                                    if (kategoriBudget === 'Harian') {
+                                        setHarianBudget(cleaned);
+                                    } else {
+                                        setBulananBudget(cleaned);
+                                    }
+                                }}
                                 placeholder="0"
                                 className="w-full pl-10 pr-4 py-2.5 rounded-lg font-bold focus:outline-none transition-colors text-xl"
                                 style={inputStyle}

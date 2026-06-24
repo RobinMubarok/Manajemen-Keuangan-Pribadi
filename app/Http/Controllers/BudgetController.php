@@ -60,20 +60,25 @@ class BudgetController extends Controller
         $request->validate([
             'harian' => 'nullable|integer',
             'bulanan' => 'nullable|integer',
+            'kategori' => 'required|string|in:Harian,Bulanan',
             'notifikasi' => 'required|boolean',
             'alertHampirHabis' => 'required|boolean',
             'alertMelebihi' => 'required|boolean',
         ]);
 
+        $kategori = $request->input('kategori', 'Harian');
+        $harian = $kategori === 'Harian' ? $request->input('harian', 0) : 0;
+        $bulanan = $kategori === 'Bulanan' ? $request->input('bulanan', 0) : 0;
+
         // 1. Update/create budgets
         Budget::updateOrCreate(
             ['user_id' => $userId, 'period' => 'harian', 'category_id' => null],
-            ['amount' => $request->input('harian', 0)]
+            ['amount' => $harian]
         );
 
         Budget::updateOrCreate(
             ['user_id' => $userId, 'period' => 'bulanan', 'category_id' => null],
-            ['amount' => $request->input('bulanan', 0)]
+            ['amount' => $bulanan]
         );
 
         // 2. Update settings — simpan masing-masing flag secara terpisah
@@ -89,9 +94,9 @@ class BudgetController extends Controller
 
         // Return updated budget data so frontend can update state immediately
         return response()->json([
-            'harian' => (int) $request->input('harian', 0),
-            'bulanan' => (int) $request->input('bulanan', 0),
-            'kategori' => 'Harian',
+            'harian' => (int) $harian,
+            'bulanan' => (int) $bulanan,
+            'kategori' => $kategori,
             'notifikasi' => $request->notifikasi,
             'alertHampirHabis' => $request->alertHampirHabis,
             'alertMelebihi' => $request->alertMelebihi,

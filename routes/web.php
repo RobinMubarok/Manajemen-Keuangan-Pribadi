@@ -32,6 +32,9 @@ Route::get('/welcome', function () {
 Route::prefix('api')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password/send', [AuthController::class, 'sendOtp']);
+    Route::post('/forgot-password/verify', [AuthController::class, 'verifyOtp']);
+    Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);
 });
 
 // Protected API routes — require valid Sanctum token

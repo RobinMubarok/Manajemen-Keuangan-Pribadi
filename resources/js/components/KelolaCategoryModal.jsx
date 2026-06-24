@@ -87,7 +87,7 @@ export default function KelolaCategoryModal({ isOpen, onClose, categories = [], 
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pt-6 pb-4">
-                    <h2 className="text-xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>Kelola Kategori</h2>
+                    <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Kelola Kategori</h2>
                     <button
                         onClick={onClose}
                         className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded-lg hover:bg-[var(--bg-hover)]"
@@ -100,7 +100,7 @@ export default function KelolaCategoryModal({ isOpen, onClose, categories = [], 
                 <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
                     {/* ── Tambah Kategori Baru ── */}
                     <div className="space-y-5">
-                        <h3 className="text-base font-bold font-serif" style={{ color: 'var(--text-primary)' }}>Tambah Kategori Baru</h3>
+                        <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Tambah Kategori Baru</h3>
 
                         {/* Tipe Kategori */}
                         <div className="space-y-2">
@@ -221,7 +221,7 @@ export default function KelolaCategoryModal({ isOpen, onClose, categories = [], 
 
                     {/* ── Semua Kategori ── */}
                     <div className="space-y-3">
-                        <h3 className="text-base font-bold font-serif" style={{ color: 'var(--text-primary)' }}>
+                        <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                             Semua Kategori ({filteredCategories.length})
                         </h3>
 

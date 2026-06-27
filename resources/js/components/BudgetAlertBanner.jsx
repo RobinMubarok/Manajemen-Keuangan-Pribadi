@@ -16,7 +16,8 @@ export default function BudgetAlertBanner({
     totalBudget, 
     onNavigate,
     alertHampirHabis = true,
-    alertMelebihi = true
+    alertMelebihi = true,
+    budgetLabel = 'Budget'
 }) {
     const [dismissed, setDismissed] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -122,8 +123,8 @@ export default function BudgetAlertBanner({
                             style={{ color: 'var(--text-body)' }}
                         >
                             {isOver100
-                                ? `Budget Harian sudah melebihi batas (${percentage}% terpakai)`
-                                : `Budget Harian hampir habis (${percentage}% terpakai)`
+                                ? `${budgetLabel} sudah melebihi batas (${percentage}% terpakai)`
+                                : `${budgetLabel} hampir habis (${percentage}% terpakai)`
                             }
                         </p>
                         <p

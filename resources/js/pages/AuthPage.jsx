@@ -122,7 +122,7 @@ export default function AuthPage({ onLogin }) {
                 return;
             }
 
-            if (mode === 'login' || mode === 'register') {
+            if (mode === 'login') {
                 // Save token and user to localStorage
                 localStorage.setItem('auth_token', data.token);
                 localStorage.setItem('auth_user', JSON.stringify(data.user));
@@ -130,6 +130,20 @@ export default function AuthPage({ onLogin }) {
                 if (onLogin) {
                     onLogin('dashboard');
                 }
+            } else if (mode === 'register') {
+                // Show success message and switch to login mode
+                setSuccessMessage('Registration successful. Please login.');
+                // Reset all form fields for a fresh login
+                setFirstName('');
+                setLastName('');
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
+                setOtp('');
+                setShowPassword(false);
+                setShowConfirmPassword(false);
+                setErrorMessage('');
+                setMode('login');
             } else if (mode === 'forgot_email') {
                 setSuccessMessage('Kode OTP berhasil dikirim ke email Anda.');
                 setMode('forgot_otp');
@@ -223,7 +237,7 @@ export default function AuthPage({ onLogin }) {
                 )}
 
                 {/* Form Section */}
-                <form onSubmit={handleSubmit} className="space-y-3.5">
+                <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
                     {/* REGISTER ONLY: First & Last Name */}
                     {mode === 'register' && (
                         <div className="grid grid-cols-2 gap-2">
@@ -271,8 +285,8 @@ export default function AuthPage({ onLogin }) {
                                 </svg>
                             </div>
                             <input
-                                type={mode === 'register' || mode === 'forgot_email' ? "email" : "text"}
-                                placeholder={mode === 'forgot_email' ? "Email" : (mode === 'register' ? "Email" : "Email / Username")}
+                                type="email"
+                                placeholder="Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full pl-11 pr-4 py-3.5 bg-[#121815] border border-[#202a24] rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-sm transition-all duration-300"
@@ -294,9 +308,14 @@ export default function AuthPage({ onLogin }) {
                                 placeholder={mode === 'forgot_reset' ? "Password Baru" : "Password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                
                                 className="w-full pl-11 pr-12 py-3.5 bg-[#121815] border border-[#202a24] rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-sm transition-all duration-300"
                                 required
                             />
+                            {/* Password length validation */}
+                            {password && password.length > 0 && password.length < 8 && (
+                                <p className="text-red-400 text-xs mt-1">Minimal 8 karakter.</p>
+                            )}
                             <div
                                 className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-gray-500 hover:text-gray-300 transition-colors"
                                 onClick={() => setShowPassword(!showPassword)}

@@ -246,15 +246,15 @@ export default function MainLayout({
                                                     </div>
                                                 ))}
                                             </div>
-                                        ) : notifications.length === 0 ? (
+                                        ) : notifications.filter(n => !n.read).length === 0 ? (
                                             <div
                                                 className="p-6 text-center text-xs"
                                                 style={{ color: 'var(--text-muted)' }}
                                             >
-                                                Tidak ada notifikasi
+                                                Tidak ada notifikasi baru
                                             </div>
                                         ) : (
-                                            notifications.slice(0, 5).map((notif) => {
+                                            notifications.filter(n => !n.read).slice(0, 5).map((notif) => {
                                                 const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.info;
                                                 const IconComp = config.Icon;
                                                 return (
@@ -346,6 +346,7 @@ export default function MainLayout({
                         onNavigate={onNavigate}
                         alertHampirHabis={budgetData?.alertHampirHabis ?? true}
                         alertMelebihi={budgetData?.alertMelebihi ?? true}
+                        budgetLabel={dashboardSummary?.budgetLabel}
                     />
                     {children}
                 </main>

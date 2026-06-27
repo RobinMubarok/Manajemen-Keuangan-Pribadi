@@ -588,6 +588,7 @@ export default function App() {
                     <NotifikasiPage
                         notifications={notifications}
                         onMarkRead={handleMarkRead}
+                        onMarkAllRead={handleMarkAllRead}
                         dashboardSummary={dashboardSummary}
                         budgetData={budgetData}
                         onNavigate={setCurrentPage}

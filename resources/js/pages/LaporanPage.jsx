@@ -94,9 +94,19 @@ export default function LaporanPage({ onNavigate }) {
             tx.date, tx.category, tx.description, tx.amount, tx.type
         ]);
 
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-        
+        // Baris ringkasan di bagian bawah
+        const summaryRows = [
+            ['', '', '', '', ''],
+            ['Total Pemasukan', '', '', formatRupiah(totalPemasukan), ''],
+            ['Total Pengeluaran', '', '', formatRupiah(totalPengeluaran), ''],
+            ['Saldo Akhir', '', '', formatRupiah(totalPerubahan), ''],
+        ];
+
+        const allRows = [...rows, ...summaryRows];
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + [headers.join(','), ...allRows.map(e => e.join(','))].join('\n');
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -238,7 +248,7 @@ export default function LaporanPage({ onNavigate }) {
             </div>
 
             {/* ── 3. SUMMARY CARDS (Tampilan Web) ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print:hidden">
                 <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--accent-border)' }}>
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Total Pemasukan</p>
                     <p className="text-3xl font-bold text-center mt-4" style={{ color: 'var(--positive)' }}>{formatRupiah(totalPemasukan)}</p>
@@ -246,6 +256,10 @@ export default function LaporanPage({ onNavigate }) {
                 <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Total Pengeluaran</p>
                     <p className="text-3xl font-bold text-center mt-4" style={{ color: 'var(--negative)' }}>{formatRupiah(totalPengeluaran)}</p>
+                </div>
+                <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[140px]" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Sisa Uang</p>
+                    <p className="text-3xl font-bold text-center mt-4" style={{ color: totalPerubahan >= 0 ? 'var(--positive)' : 'var(--negative)' }}>{formatRupiah(totalPerubahan)}</p>
                 </div>
             </div>
 

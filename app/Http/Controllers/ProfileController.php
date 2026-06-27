@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -92,9 +91,9 @@ class ProfileController extends Controller
 
             // Store new photo directly to public/profile-photos
             $file = $request->file('photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $filename = time().'_'.$file->getClientOriginalName();
             $file->move(public_path('profile-photos'), $filename);
-            
+
             $user->photo_url = '/profile-photos/'.$filename;
             $user->save();
         }

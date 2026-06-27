@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AlertTriangle, Clock, CheckCircle, Bell } from 'lucide-react';
 
 /**
@@ -14,10 +14,18 @@ import { AlertTriangle, Clock, CheckCircle, Bell } from 'lucide-react';
  * @param {Object}   budgetData       - Data budget (harian, bulanan)
  * @param {Function} onNavigate       - Callback navigasi
  */
-export default function NotifikasiPage({ notifications = [], onMarkRead, dashboardSummary = null, budgetData = null, onNavigate }) {
+export default function NotifikasiPage({ notifications = [], onMarkRead, onMarkAllRead, dashboardSummary = null, budgetData = null, onNavigate }) {
     const unreadNotifications = notifications.filter(n => !n.read);
     const readNotifications = notifications.filter(n => n.read);
     const unreadCount = unreadNotifications.length;
+
+    // Otomatis tandai semua sudah dibaca saat halaman notifikasi dibuka
+    useEffect(() => {
+        if (notifications.length > 0 && onMarkAllRead) {
+            onMarkAllRead();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Helper untuk merender container ikon berbentuk rounded square berwarna (border-radius: 10px, 40x40px)
     const renderIconContainer = (type) => {
@@ -122,24 +130,23 @@ export default function NotifikasiPage({ notifications = [], onMarkRead, dashboa
                 </section>
             )}
 
-            {/* ── SEKSI: SUDAH DIBACA ── */}
+            {/* ── SEKSI: SUDAH DIBACA (riwayat) ── */}
             <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Sudah Dibaca</h2>
                 {readNotifications.length === 0 ? (
-                    <div 
+                    <div
                         className="p-6 text-center text-sm"
                         style={{
                             color: 'var(--text-muted)',
                             backgroundColor: 'var(--bg-elevated)',
                             border: '1px solid var(--border-default)',
                             borderRadius: 'var(--r-md)',
-                            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
                         }}
                     >
                         Belum ada notifikasi yang dibaca
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {readNotifications.map((notif) => (
                             <div
                                 key={notif.id}
@@ -149,14 +156,14 @@ export default function NotifikasiPage({ notifications = [], onMarkRead, dashboa
                                     backgroundColor: 'var(--bg-elevated)',
                                     padding: '16px',
                                     borderRadius: 'var(--r-md)',
-                                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+                                    opacity: 0.75,
                                 }}
                             >
                                 {renderIconContainer(notif.type)}
                                 <div className="flex-1 min-w-0">
                                     {notif.title ? (
                                         <>
-                                            <h3 className="font-bold text-sm sm:text-base leading-snug" style={{ color: 'var(--text-primary)' }}>
+                                            <h3 className="font-semibold text-sm sm:text-base leading-snug" style={{ color: 'var(--text-primary)' }}>
                                                 {notif.title}
                                             </h3>
                                             <p className="text-xs sm:text-sm mt-1 leading-snug" style={{ color: 'var(--text-body)' }}>

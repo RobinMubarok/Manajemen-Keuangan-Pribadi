@@ -75,7 +75,7 @@ export default function DashboardPage({ notifications, onMarkRead, onNavigate, t
 
             {/* ── 2. RINGKASAN KEUANGAN ── */}
             <section>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <SummaryCard
                         title="Pemasukan"
                         amount={isLoading ? '...' : formatRupiah(dashboardData?.income ?? 0)}
@@ -86,6 +86,12 @@ export default function DashboardPage({ notifications, onMarkRead, onNavigate, t
                         title="Pengeluaran"
                         amount={isLoading ? '...' : formatRupiah(dashboardData?.expense ?? 0)}
                         type="expense"
+                        subtitle={dashboardData ? `Bulan ${dashboardData.monthLabel}` : ''}
+                    />
+                    <SummaryCard
+                        title="Sisa Uang"
+                        amount={isLoading ? '...' : formatRupiah(dashboardData?.netBalance ?? 0)}
+                        type={dashboardData?.netBalance >= 0 ? "income" : "expense"}
                         subtitle={dashboardData ? `Bulan ${dashboardData.monthLabel}` : ''}
                     />
                 </div>

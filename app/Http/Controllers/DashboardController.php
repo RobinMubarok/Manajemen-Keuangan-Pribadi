@@ -103,6 +103,7 @@ class DashboardController extends Controller
             'budgetLabel' => $budgetLabel,
             'spendingData' => $spendingByCategory,
             'recentTransactions' => $recentTransactions,
+            'netBalance' => $monthlyIncome - $monthlyExpense,
         ]);
     }
 }

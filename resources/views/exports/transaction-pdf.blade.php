@@ -77,6 +77,10 @@
                     </td>
                 </tr>
             @endforeach
+            <tr>
+                <td colspan="3" style="text-align: right; font-weight: bold;">Net Balance</td>
+                <td class="text-right" style="font-weight: bold;">Rp. {{ number_format($netBalance, 0, ',', '.') }}</td>
+            </tr>
         </tbody>
     </table>
 

@@ -26,6 +26,8 @@ export default function LaporanPage({ onNavigate }) {
 
     const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
     const [selectedYear, setSelectedYear] = useState(currentYearStr);
+    const [selectedType, setSelectedType] = useState('Semua');
+    const [selectedCategory, setSelectedCategory] = useState('Semua');
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -68,7 +70,23 @@ export default function LaporanPage({ onNavigate }) {
             });
     }, [selectedMonth, selectedYear, onNavigate]);
 
-    const filteredTransactions = transactions;
+    const availableCategories = Array.from(new Set(
+        transactions
+            .filter(tx => {
+                if (selectedType === 'Semua') return true;
+                const isPemasukan = tx.type === 'Pemasukan' || tx.amount > 0;
+                return selectedType === 'Pemasukan' ? isPemasukan : !isPemasukan;
+            })
+            .map(tx => tx.category)
+    )).filter(Boolean).sort();
+
+    const filteredTransactions = transactions.filter(tx => {
+        const isPemasukan = tx.type === 'Pemasukan' || tx.amount > 0;
+        if (selectedType === 'Pemasukan' && !isPemasukan) return false;
+        if (selectedType === 'Pengeluaran' && isPemasukan) return false;
+        if (selectedCategory !== 'Semua' && tx.category !== selectedCategory) return false;
+        return true;
+    });
 
     const totalPemasukan = filteredTransactions
         .filter(tx => tx.type === 'Pemasukan' || tx.amount > 0)
@@ -230,18 +248,43 @@ export default function LaporanPage({ onNavigate }) {
             </div>
 
             {/* ── 2. DATE SELECTOR BAR (Tampilan Web) ── */}
-            <div className="p-4 rounded-2xl flex items-center gap-3 print:hidden" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
-                <Calendar style={{ color: 'var(--text-muted)' }} size={22} />
-                <div className="relative flex items-center">
-                    <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
-                        {MONTHS.map(m => <option key={m.value} value={m.value}>{m.name}</option>)}
+            <div className="p-4 rounded-2xl flex flex-wrap items-center justify-between gap-x-4 gap-y-3 print:hidden" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
+                <div className="flex items-center gap-3 flex-1 min-w-[120px]">
+                    <Calendar style={{ color: 'var(--text-muted)' }} size={22} className="flex-shrink-0" />
+                    <div className="relative flex items-center flex-1">
+                        <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
+                            {MONTHS.map(m => <option key={m.value} value={m.value}>{m.name}</option>)}
+                        </select>
+                        <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
+                    </div>
+                </div>
+                
+                <div className="w-px h-6 hidden sm:block" style={{ backgroundColor: 'var(--border-default)' }} />
+                
+                <div className="relative flex items-center flex-1 min-w-[100px]">
+                    <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="w-full appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
+                        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
                     <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
                 </div>
-                <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
-                <div className="relative flex items-center">
-                    <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
-                        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                
+                <div className="w-px h-6 hidden sm:block" style={{ backgroundColor: 'var(--border-default)' }} />
+                
+                <div className="relative flex items-center flex-1 min-w-[140px]">
+                    <select value={selectedType} onChange={(e) => { setSelectedType(e.target.value); setSelectedCategory('Semua'); }} className="w-full appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
+                        <option value="Semua">Semua Tipe</option>
+                        <option value="Pemasukan">Pemasukan</option>
+                        <option value="Pengeluaran">Pengeluaran</option>
+                    </select>
+                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
+                </div>
+                
+                <div className="w-px h-6 hidden sm:block" style={{ backgroundColor: 'var(--border-default)' }} />
+                
+                <div className="relative flex items-center flex-1 min-w-[140px]">
+                    <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full appearance-none font-medium focus:outline-none cursor-pointer pr-8 pl-1 bg-transparent">
+                        <option value="Semua">Semua Kategori</option>
+                        {availableCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                     <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
                 </div>

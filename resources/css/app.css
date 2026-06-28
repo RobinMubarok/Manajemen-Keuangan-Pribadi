@@ -126,3 +126,10 @@ option {
 .dark .skeleton-bg {
     background-color: #3f3f46; /* dark mode */
 }
+
+/* ── Remove native password reveal icon ── */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+

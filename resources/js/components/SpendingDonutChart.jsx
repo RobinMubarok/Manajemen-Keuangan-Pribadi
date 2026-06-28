@@ -40,25 +40,12 @@ function CustomTooltip({ active, payload }) {
 /**
  * Legend custom di sebelah kanan donut chart.
  */
-function CustomLegend({ data, budgetTotal }) {
-    // Calculate total for percentage based on budgetTotal (if provided and greater than actual spending)
-    const actualSpending = data.reduce((sum, item) => sum + item.value, 0);
-    const totalValue = budgetTotal > actualSpending ? budgetTotal : actualSpending;
-
-    // Append "Sisa Budget" if applicable
-    const displayData = [...data];
-    if (budgetTotal > actualSpending) {
-        displayData.push({
-            name: 'Sisa Budget',
-            value: budgetTotal - actualSpending,
-            color: 'var(--bg-hover)', // muted color for unused budget
-            isSisa: true
-        });
-    }
+function CustomLegend({ data }) {
+    const totalValue = data.reduce((sum, item) => sum + item.value, 0);
 
     return (
         <ul className="space-y-2">
-            {displayData.map((entry, index) => {
+            {data.map((entry, index) => {
                 const color = entry.color || COLORS[index % COLORS.length];
                 const percentage = totalValue > 0 ? ((entry.value / totalValue) * 100).toFixed(2) : '0.00';
                 
@@ -71,14 +58,14 @@ function CustomLegend({ data, budgetTotal }) {
                             />
                             <span
                                 className="text-xs truncate"
-                                style={{ color: entry.isSisa ? 'var(--text-muted)' : 'var(--text-body)' }}
+                                style={{ color: 'var(--text-body)' }}
                             >
                                 {entry.name}
                             </span>
                         </div>
                         <span
                             className="text-xs font-semibold flex-shrink-0"
-                            style={{ color: entry.isSisa ? 'var(--text-muted)' : 'var(--text-primary)' }}
+                            style={{ color: 'var(--text-primary)' }}
                         >
                             {percentage}%
                         </span>
@@ -96,19 +83,8 @@ function CustomLegend({ data, budgetTotal }) {
  *
  * @param {Array}  data        - Array of { name: string, value: number, color: string }
  * @param {string} total       - Label total di tengah donut (e.g. "Rp 5,8jt")
- * @param {number} budgetTotal - Opsional. Total budget untuk proporsi chart.
  */
-export default function SpendingDonutChart({ data, total, budgetTotal = 0 }) {
-    // Siapkan data chart dengan Sisa Budget
-    const actualSpending = data.reduce((sum, item) => sum + item.value, 0);
-    const chartData = [...data];
-    if (budgetTotal > actualSpending) {
-        chartData.push({
-            name: 'Sisa Budget',
-            value: budgetTotal - actualSpending,
-            color: 'var(--bg-hover)', // warna transparan untuk sisa budget
-        });
-    }
+export default function SpendingDonutChart({ data, total }) {
 
     return (
         <div
@@ -131,7 +107,7 @@ export default function SpendingDonutChart({ data, total, budgetTotal = 0 }) {
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
-                                data={chartData}
+                                data={data}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={42}
@@ -142,7 +118,7 @@ export default function SpendingDonutChart({ data, total, budgetTotal = 0 }) {
                                 endAngle={-270}
                                 stroke="none"
                             >
-                                {chartData.map((entry, index) => (
+                                {data.map((entry, index) => (
                                     <Cell
                                         key={`cell-${index}`}
                                         fill={entry.color || COLORS[index % COLORS.length]}
@@ -175,7 +151,7 @@ export default function SpendingDonutChart({ data, total, budgetTotal = 0 }) {
 
                 {/* Legend */}
                 <div className="flex-1 min-w-0">
-                    <CustomLegend data={data} budgetTotal={budgetTotal} />
+                    <CustomLegend data={data} />
                 </div>
             </div>
         </div>

@@ -1,0 +1,23 @@
+[phases.setup]
+nixPkgs = ["php84", "php84Extensions.pdo", "php84Extensions.pdo_mysql", "php84Extensions.mbstring", "php84Extensions.xml", "php84Extensions.curl", "php84Extensions.fileinfo", "php84Extensions.bcmath", "php84Extensions.intl", "php84Extensions.zip", "php84Extensions.gd", "php84Extensions.opcache", "php84Extensions.exif", "php84Extensions.pcntl", "php84Extensions.tokenizer"]
+
+[phases.install]
+cmds = [
+    "mkdir -p storage/framework/{sessions,views,cache}",
+    "mkdir -p storage/logs",
+    "mkdir -p bootstrap/cache",
+    "composer install --optimize-autoloader --no-scripts --no-interaction --ignore-platform-reqs",
+    "npm ci",
+    "npm run build"
+]
+
+[phases.build]
+cmds = [
+    "php artisan package:discover --ansi || true",
+    "php artisan config:cache || true",
+    "php artisan route:cache || true",
+    "php artisan view:cache || true"
+]
+
+[start]
+cmd = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"

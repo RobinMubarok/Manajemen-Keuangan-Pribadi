@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+# Replace PORT in nginx config
+sed -i "s/\${PORT:-8080}/${PORT:-8080}/g" /etc/nginx/http.d/default.conf
+
+# Create storage directories if missing
+mkdir -p storage/framework/{sessions,views,cache}
+mkdir -p storage/logs
+mkdir -p bootstrap/cache
+
+# Set permissions
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# Generate app key if not set
+if [ -z "$APP_KEY" ]; then
+    php artisan key:generate --force
+fi
+
+# Cache configuration
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Run migrations
+php artisan migrate --force
+
+# Create storage link
+php artisan storage:link --force 2>/dev/null || true
+
+# Start supervisord
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

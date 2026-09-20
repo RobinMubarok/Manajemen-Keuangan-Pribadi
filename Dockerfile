@@ -19,7 +19,8 @@ FROM composer:2 AS composer
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# Skip platform check during install since build env differs from runtime
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignore-platform-reqs
 
 COPY . .
 RUN composer dump-autoload --optimize
@@ -34,18 +35,35 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     curl \
+    libcurl \
+    curl-dev \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     oniguruma-dev \
     libxml2-dev \
+    libzip-dev \
+    icu-dev \
     zip \
     unzip \
     bash
 
-# Install PHP extensions
+# Install ALL PHP extensions needed by Laravel
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd xml
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        xml \
+        zip \
+        curl \
+        fileinfo \
+        intl \
+        opcache
 
 WORKDIR /var/www/html
 

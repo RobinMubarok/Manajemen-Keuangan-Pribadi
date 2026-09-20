@@ -40,7 +40,8 @@ RUN apk add --no-cache \
     oniguruma-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    bash
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -58,24 +59,27 @@ COPY --from=composer /app/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 
 # Create storage directories
-RUN mkdir -p storage/framework/{sessions,views,cache} \
+RUN mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/framework/cache \
     && mkdir -p storage/logs \
-    && mkdir -p bootstrap/cache
+    && mkdir -p bootstrap/cache \
+    && mkdir -p /var/log/supervisor
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-# Nginx configuration
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+# Nginx configuration (template)
+COPY docker/nginx.conf /etc/nginx/nginx.conf.template
 
 # Supervisord configuration
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Startup script
+# Startup script - fix line endings and make executable
 COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
 
-EXPOSE ${PORT:-8080}
+EXPOSE 8080
 
-CMD ["/start.sh"]
+CMD ["/bin/bash", "/start.sh"]

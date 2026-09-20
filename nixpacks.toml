@@ -1,5 +1,9 @@
+[variables]
+NIXPACKS_PHP_VERSION = "8.4"
+NIXPACKS_PHP_FALLBACK_PATH = "public"
+
 [phases.setup]
-nixPkgs = ["php84", "php84Extensions.pdo", "php84Extensions.pdo_mysql", "php84Extensions.mbstring", "php84Extensions.xml", "php84Extensions.curl", "php84Extensions.fileinfo", "php84Extensions.bcmath", "php84Extensions.intl", "php84Extensions.zip", "php84Extensions.gd", "php84Extensions.opcache", "php84Extensions.exif", "php84Extensions.pcntl", "php84Extensions.tokenizer"]
+nixPkgs = ["php84", "php84Extensions.pdo", "php84Extensions.pdo_mysql", "php84Extensions.mbstring", "php84Extensions.xml", "php84Extensions.curl", "php84Extensions.fileinfo", "php84Extensions.bcmath", "php84Extensions.intl", "php84Extensions.zip", "php84Extensions.gd", "php84Extensions.opcache", "php84Extensions.exif", "php84Extensions.pcntl", "nodejs_20"]
 
 [phases.install]
 cmds = [
